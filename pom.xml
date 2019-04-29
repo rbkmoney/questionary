@@ -27,8 +27,8 @@
         <db.port>5432</db.port>
         <db.user>postgres</db.user>
         <db.password>postgres</db.password>
-        <db.name>worksheet</db.name>
-        <db.schema>ws</db.schema>
+        <db.name>questionary</db.name>
+        <db.schema>qs</db.schema>
         <db.url>jdbc:postgresql://localhost:${db.port}/${db.name}</db.url>
     </properties>
 
