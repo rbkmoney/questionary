@@ -24,13 +24,12 @@
         <dockerfile.base.service.tag>bc95d0d6dc13c693acd2b274531a7d604b877bf3</dockerfile.base.service.tag>
         <dockerfile.registry>${env.REGISTRY}</dockerfile.registry>
         <shared.resources.version>0.3.6</shared.resources.version>
-        <db.url>jdbc:postgresql://localhost:5432/worksheet</db.url>
+        <db.port>5432</db.port>
         <db.user>postgres</db.user>
         <db.password>postgres</db.password>
         <db.name>worksheet</db.name>
         <db.schema>ws</db.schema>
-        <local.pg.url>jdbc:postgresql://localhost:5432/worksheet</local.pg.url>
-        <local.pg.port>5432</local.pg.port>
+        <db.url>jdbc:postgresql://localhost:${db.port}/${db.name}</db.url>
     </properties>
 
     <dependencies>
@@ -91,6 +90,7 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.4</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -171,7 +171,7 @@
                 <configuration>
                     <jdbc>
                         <driver>org.postgresql.Driver</driver>
-                        <url>${local.pg.url}</url>
+                        <url>${db.url}</url>
                         <user>${db.user}</user>
                         <password>${db.password}</password>
                     </jdbc>
@@ -190,7 +190,7 @@
                         </database>
                         <target>
                             <packageName>com.rbkmoney.questionary.domain</packageName>
-                            <directory>target/generated-sources/</directory>
+                            <directory>src/main/java/</directory>
                         </target>
                     </generator>
                 </configuration>
@@ -200,6 +200,34 @@
                         <phase>initialize</phase>
                         <goals>
                             <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.rbkmoney.maven.plugins</groupId>
+                <artifactId>pg-embedded-plugin</artifactId>
+                <version>1.4</version>
+                <configuration>
+                    <port>${db.port}</port>
+                    <dbName>${db.name}</dbName>
+                    <schemas>
+                        <schema>${db.schema}</schema>
+                    </schemas>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>PG_server_start</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>start</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>PG_server_stop</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>stop</goal>
                         </goals>
                     </execution>
                 </executions>
