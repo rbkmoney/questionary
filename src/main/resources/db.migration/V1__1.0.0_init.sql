@@ -1,12 +1,12 @@
-CREATE SCHEMA IF NOT EXISTS ws;
+CREATE SCHEMA IF NOT EXISTS qs;
 
-CREATE TYPE ws.questionary_entity_type AS ENUM ('legal', 'individual');
+CREATE TYPE qs.questionary_entity_type AS ENUM ('legal', 'individual');
 
-CREATE TABLE ws.questionary
+CREATE TABLE qs.questionary
 (
     id            BIGSERIAL                         NOT NULL,
     owner_id      BIGINT                            NOT NULL,
-    type          ws.questionary_entity_type NOT NULL,
+    type          qs.questionary_entity_type NOT NULL,
     inn           CHARACTER VARYING,
     phone_number  CHARACTER VARYING                 NOT NULL,
     email         CHARACTER VARYING                 NOT NULL,
@@ -21,9 +21,9 @@ CREATE TABLE ws.questionary
     CONSTRAINT questionary_pkey PRIMARY KEY (id)
 );
 
-CREATE INDEX questionary_owner_id on ws.questionary (owner_id);
+CREATE INDEX questionary_owner_id on qs.questionary (owner_id);
 
-CREATE TABLE ws.individual_entity_questionary
+CREATE TABLE qs.individual_entity_questionary
 (
     id                          BIGSERIAL         NOT NULL,
     residence_name              CHARACTER VARYING,
@@ -39,10 +39,10 @@ CREATE TABLE ws.individual_entity_questionary
     has_representative          BOOLEAN           NOT NULL DEFAULT FALSE,
     beneficial_owner            BOOLEAN           NOT NULL DEFAULT FALSE,
 
-    CONSTRAINT fk_individual_entity_to_questionary FOREIGN KEY (id) REFERENCES ws.questionary (id)
+    CONSTRAINT fk_individual_entity_to_questionary FOREIGN KEY (id) REFERENCES qs.questionary (id)
 );
 
-CREATE TABLE ws.legal_entity_questionary
+CREATE TABLE qs.legal_entity_questionary
 (
     id                 BIGSERIAL         NOT NULL,
     name               CHARACTER VARYING NOT NULL,
@@ -58,10 +58,10 @@ CREATE TABLE ws.legal_entity_questionary
     owner_resident     BOOLEAN           NOT NULL DEFAULT FALSE,
     fatca              BOOLEAN           NOT NULL DEFAULT FALSE,
 
-    CONSTRAINT fk_legal_entity_to_questionary FOREIGN KEY (id) REFERENCES ws.questionary (id)
+    CONSTRAINT fk_legal_entity_to_questionary FOREIGN KEY (id) REFERENCES qs.questionary (id)
 );
 
-CREATE TABLE ws.license_info
+CREATE TABLE qs.license_info
 (
     id             BIGSERIAL                   NOT NULL,
     questionary_id BIGINT                      NOT NULL,
@@ -72,20 +72,20 @@ CREATE TABLE ws.license_info
     validity       TIMESTAMP WITHOUT TIME ZONE NOT NULL,
 
     CONSTRAINT license_info_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_license_info_to_questionary_data FOREIGN KEY (questionary_id) REFERENCES ws.questionary (id)
+    CONSTRAINT fk_license_info_to_questionary_data FOREIGN KEY (questionary_id) REFERENCES qs.questionary (id)
 );
 
-CREATE UNIQUE INDEX license_info_to_q_data_id ON ws.license_info (questionary_id);
+CREATE UNIQUE INDEX license_info_to_q_data_id ON qs.license_info (questionary_id);
 
-CREATE TYPE ws.month_operation_count AS ENUM ('lt_ten', 'btw_ten_to_fifty', 'gt_fifty');
+CREATE TYPE qs.month_operation_count AS ENUM ('lt_ten', 'btw_ten_to_fifty', 'gt_fifty');
 
-CREATE TYPE ws.month_operation_sum AS ENUM ('lt_five_hundred_thousand', 'btw_five_hundred_thousand_to_one_million', 'gt_one_million');
+CREATE TYPE qs.month_operation_sum AS ENUM ('lt_five_hundred_thousand', 'btw_five_hundred_thousand_to_one_million', 'gt_one_million');
 
-CREATE TYPE ws.relation_process AS ENUM ('insolvency_proceedings', 'bankrupt_judicial_decision', 'liquidation_process');
+CREATE TYPE qs.relation_process AS ENUM ('insolvency_proceedings', 'bankrupt_judicial_decision', 'liquidation_process');
 
-CREATE TYPE ws.business_reputation AS ENUM ('provide_reviews', 'no_reviews');
+CREATE TYPE qs.business_reputation AS ENUM ('provide_revieqs', 'no_reviews');
 
-CREATE TABLE ws.additional_info
+CREATE TABLE qs.additional_info
 (
     id                    BIGSERIAL                       NOT NULL,
     questionary_id        BIGINT                          NOT NULL,
@@ -94,68 +94,68 @@ CREATE TABLE ws.additional_info
     accounting_org        CHARACTER VARYING,
     nko_relation_target   CHARACTER VARYING               NOT NULL,
     relationship_with_nko CHARACTER VARYING               NOT NULL,
-    month_operation_count ws.month_operation_count NOT NULL,
-    month_operation_sum   ws.month_operation_sum   NOT NULL,
+    month_operation_count qs.month_operation_count NOT NULL,
+    month_operation_sum   qs.month_operation_sum   NOT NULL,
     storage_facilities    BOOLEAN                         NOT NULL DEFAULT FALSE NOT NULL,
     counterparties        CHARACTER VARYING               NOT NULL,
-    relation_process      ws.relation_process      NOT NULL,
+    relation_process      qs.relation_process      NOT NULL,
     benefit_third_parties BOOLEAN                         NOT NULL DEFAULT FALSE NOT NULL,
-    business_reputation   ws.business_reputation   NOT NULL,
+    business_reputation   qs.business_reputation   NOT NULL,
     bank_details          CHARACTER VARYING               NOT NULL,
 
     CONSTRAINT additional_info_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_additional_info_to_questionary_data FOREIGN KEY (questionary_id) REFERENCES ws.questionary (id)
+    CONSTRAINT fk_additional_info_to_questionary_data FOREIGN KEY (questionary_id) REFERENCES qs.questionary (id)
 );
 
-CREATE INDEX additional_info_to_questionary_id ON ws.additional_info (questionary_id);
+CREATE INDEX additional_info_to_questionary_id ON qs.additional_info (questionary_id);
 
-CREATE TABLE ws.financial_position
+CREATE TABLE qs.financial_position
 (
     id                 BIGSERIAL         NOT NULL,
     additional_info_id BIGINT            NOT NULL,
     description        CHARACTER VARYING NOT NULL,
 
     CONSTRAINT financial_position_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_financial_position_to_additional_info FOREIGN KEY (additional_info_id) REFERENCES ws.additional_info (id)
+    CONSTRAINT fk_financial_position_to_additional_info FOREIGN KEY (additional_info_id) REFERENCES qs.additional_info (id)
 );
 
-CREATE INDEX financial_position_additional_info_id ON ws.financial_position (additional_info_id);
+CREATE INDEX financial_position_additional_info_id ON qs.financial_position (additional_info_id);
 
-CREATE TABLE ws.business_info
+CREATE TABLE qs.business_info
 (
     id                 BIGSERIAL         NOT NULL,
     additional_info_id BIGINT            NOT NULL,
     description        CHARACTER VARYING NOT NULL,
 
     CONSTRAINT business_info_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_business_info_to_additional_info FOREIGN KEY (additional_info_id) REFERENCES ws.additional_info (id)
+    CONSTRAINT fk_business_info_to_additional_info FOREIGN KEY (additional_info_id) REFERENCES qs.additional_info (id)
 );
 
-CREATE INDEX business_info_additional_info_id ON ws.business_info (additional_info_id);
+CREATE INDEX business_info_additional_info_id ON qs.business_info (additional_info_id);
 
-CREATE TABLE ws.license_activity
+CREATE TABLE qs.license_activity
 (
     id              BIGSERIAL         NOT NULL,
     license_info_id BIGINT            NOT NULL,
     name            CHARACTER VARYING NOT NULL,
 
     CONSTRAINT license_activity_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_license_activities_to_license_info FOREIGN KEY (license_info_id) REFERENCES ws.license_info (id)
+    CONSTRAINT fk_license_activities_to_license_info FOREIGN KEY (license_info_id) REFERENCES qs.license_info (id)
 );
 
-CREATE INDEX license_activities_q_data_id ON ws.license_activity (license_info_id);
+CREATE INDEX license_activities_q_data_id ON qs.license_activity (license_info_id);
 
-CREATE TABLE ws.legal_org_info
+CREATE TABLE qs.legal_org_info
 (
     id             BIGSERIAL         NOT NULL,
     questionary_id BIGINT            NOT NULL,
     description    CHARACTER VARYING NOT NULL,
 
     CONSTRAINT legal_org_info_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_legal_org_info_to_questionary FOREIGN KEY (questionary_id) REFERENCES ws.questionary (id)
+    CONSTRAINT fk_legal_org_info_to_questionary FOREIGN KEY (questionary_id) REFERENCES qs.questionary (id)
 );
 
-CREATE TABLE ws.russian_private_entity
+CREATE TABLE qs.russian_private_entity
 (
     id                BIGSERIAL                   NOT NULL,
     questionary_id    BIGINT                      NOT NULL,
@@ -169,24 +169,24 @@ CREATE TABLE ws.russian_private_entity
     contact_info      CHARACTER VARYING,
 
     CONSTRAINT russian_private_entity_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_russian_private_entity_to_questionary FOREIGN KEY (questionary_id) REFERENCES ws.questionary (id)
+    CONSTRAINT fk_russian_private_entity_to_questionary FOREIGN KEY (questionary_id) REFERENCES qs.questionary (id)
 );
 
-CREATE INDEX russian_private_entity_questionary_id ON ws.russian_private_entity (questionary_id);
+CREATE INDEX russian_private_entity_questionary_id ON qs.russian_private_entity (questionary_id);
 
-CREATE TABLE ws.identity_document
+CREATE TABLE qs.identity_document
 (
     id             BIGSERIAL NOT NULL,
     questionary_id BIGINT    NOT NULL,
     name           BIGSERIAL NOT NULL,
 
     CONSTRAINT identity_document_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_identity_doc_questionary FOREIGN KEY (questionary_id) REFERENCES ws.questionary (id)
+    CONSTRAINT fk_identity_doc_questionary FOREIGN KEY (questionary_id) REFERENCES qs.questionary (id)
 );
 
-CREATE INDEX identity_document_questionary_id ON ws.identity_document (questionary_id);
+CREATE INDEX identity_document_questionary_id ON qs.identity_document (questionary_id);
 
-CREATE TABLE ws.russian_passport
+CREATE TABLE qs.russian_passport
 (
     id          BIGSERIAL                   NOT NULL,
     serial      CHARACTER VARYING,
@@ -195,10 +195,10 @@ CREATE TABLE ws.russian_passport
     issuer_code CHARACTER VARYING,
     issued_at   TIMESTAMP WITHOUT TIME ZONE NOT NULL,
 
-    CONSTRAINT fk_russian_passport_to_identity_document FOREIGN KEY (id) REFERENCES ws.identity_document (id)
+    CONSTRAINT fk_russian_passport_to_identity_document FOREIGN KEY (id) REFERENCES qs.identity_document (id)
 );
 
-CREATE TABLE ws.migration_card
+CREATE TABLE qs.migration_card
 (
     id              BIGSERIAL                   NOT NULL,
     questionary_id  BIGINT                      NOT NULL,
@@ -207,12 +207,12 @@ CREATE TABLE ws.migration_card
     expiration_date TIMESTAMP WITHOUT TIME ZONE,
 
     CONSTRAINT migration_card_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_migration_card_to_questionary_data FOREIGN KEY (questionary_id) REFERENCES ws.questionary (id)
+    CONSTRAINT fk_migration_card_to_questionary_data FOREIGN KEY (questionary_id) REFERENCES qs.questionary (id)
 );
 
-CREATE INDEX migration_card_questionary_id ON ws.migration_card (questionary_id);
+CREATE INDEX migration_card_questionary_id ON qs.migration_card (questionary_id);
 
-CREATE TABLE ws.residence_approve
+CREATE TABLE qs.residence_approve
 (
     id              BIGSERIAL                   NOT NULL,
     questionary_id  BIGINT                      NOT NULL,
@@ -223,12 +223,12 @@ CREATE TABLE ws.residence_approve
     expiration_date TIMESTAMP WITHOUT TIME ZONE NOT NULL,
 
     CONSTRAINT residence_approve_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_residence_approve_to_questionary FOREIGN KEY (questionary_id) REFERENCES ws.questionary (id)
+    CONSTRAINT fk_residence_approve_to_questionary FOREIGN KEY (questionary_id) REFERENCES qs.questionary (id)
 );
 
-CREATE INDEX residence_approve_questionary_id ON ws.residence_approve (questionary_id);
+CREATE INDEX residence_approve_questionary_id ON qs.residence_approve (questionary_id);
 
-CREATE TABLE ws.legal_owner
+CREATE TABLE qs.legal_owner
 (
     id                   BIGSERIAL NOT NULL,
     questionary_id       BIGINT    NOT NULL,
@@ -240,16 +240,16 @@ CREATE TABLE ws.legal_owner
     pdl_category         BOOLEAN   NOT NULL,
 
     CONSTRAINT legal_approve_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_legal_owner_to_questionary_data FOREIGN KEY (questionary_id) REFERENCES ws.questionary (id),
-    CONSTRAINT fk_legal_owner_to_private_entity FOREIGN KEY (private_entity_id) REFERENCES ws.russian_private_entity (id),
-    CONSTRAINT fk_legal_owner_to_identity_doc FOREIGN KEY (identity_document_id) REFERENCES ws.identity_document (id),
-    CONSTRAINT fk_legal_owner_to_migration_card FOREIGN KEY (migration_card_id) REFERENCES ws.migration_card (id),
-    CONSTRAINT fk_legal_owner_to_residence_approve FOREIGN KEY (residence_approve_id) REFERENCES ws.residence_approve (id)
+    CONSTRAINT fk_legal_owner_to_questionary_data FOREIGN KEY (questionary_id) REFERENCES qs.questionary (id),
+    CONSTRAINT fk_legal_owner_to_private_entity FOREIGN KEY (private_entity_id) REFERENCES qs.russian_private_entity (id),
+    CONSTRAINT fk_legal_owner_to_identity_doc FOREIGN KEY (identity_document_id) REFERENCES qs.identity_document (id),
+    CONSTRAINT fk_legal_owner_to_migration_card FOREIGN KEY (migration_card_id) REFERENCES qs.migration_card (id),
+    CONSTRAINT fk_legal_owner_to_residence_approve FOREIGN KEY (residence_approve_id) REFERENCES qs.residence_approve (id)
 );
 
-CREATE UNIQUE INDEX legal_owner_questionary_id ON ws.legal_owner (questionary_id);
+CREATE UNIQUE INDEX legal_owner_questionary_id ON qs.legal_owner (questionary_id);
 
-CREATE TABLE ws.beneficial_owner
+CREATE TABLE qs.beneficial_owner
 (
     id                   BIGSERIAL NOT NULL,
     questionary_id       BIGINT    NOT NULL,
@@ -262,11 +262,11 @@ CREATE TABLE ws.beneficial_owner
     pdl_category         BOOLEAN   NOT NULL,
 
     CONSTRAINT beneficial_owner_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_beneficial_owner_to_questionary_data FOREIGN KEY (questionary_id) REFERENCES ws.questionary (id),
-    CONSTRAINT fk_beneficial_owner_to_private_entity FOREIGN KEY (private_entity_id) REFERENCES ws.russian_private_entity (id),
-    CONSTRAINT fk_beneficial_owner_to_identity_doc FOREIGN KEY (identity_document_id) REFERENCES ws.identity_document (id),
-    CONSTRAINT fk_beneficial_owner_to_migration_card FOREIGN KEY (migration_card_id) REFERENCES ws.migration_card (id),
-    CONSTRAINT fk_beneficial_owner_to_residence_approve FOREIGN KEY (residence_approve_id) REFERENCES ws.residence_approve (id)
+    CONSTRAINT fk_beneficial_owner_to_questionary_data FOREIGN KEY (questionary_id) REFERENCES qs.questionary (id),
+    CONSTRAINT fk_beneficial_owner_to_private_entity FOREIGN KEY (private_entity_id) REFERENCES qs.russian_private_entity (id),
+    CONSTRAINT fk_beneficial_owner_to_identity_doc FOREIGN KEY (identity_document_id) REFERENCES qs.identity_document (id),
+    CONSTRAINT fk_beneficial_owner_to_migration_card FOREIGN KEY (migration_card_id) REFERENCES qs.migration_card (id),
+    CONSTRAINT fk_beneficial_owner_to_residence_approve FOREIGN KEY (residence_approve_id) REFERENCES qs.residence_approve (id)
 );
 
-CREATE INDEX beneficial_owner_questionary_id ON ws.beneficial_owner (questionary_id)
+CREATE INDEX beneficial_owner_questionary_id ON qs.beneficial_owner (questionary_id)
