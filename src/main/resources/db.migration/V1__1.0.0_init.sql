@@ -83,7 +83,7 @@ CREATE TYPE qs.month_operation_sum AS ENUM ('lt_five_hundred_thousand', 'btw_fiv
 
 CREATE TYPE qs.relation_process AS ENUM ('insolvency_proceedings', 'bankrupt_judicial_decision', 'liquidation_process');
 
-CREATE TYPE qs.business_reputation AS ENUM ('provide_revieqs', 'no_reviews');
+CREATE TYPE qs.business_reputation AS ENUM ('provide_reviews', 'no_reviews');
 
 CREATE TABLE qs.additional_info
 (
