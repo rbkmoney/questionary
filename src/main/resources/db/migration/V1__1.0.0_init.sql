@@ -4,19 +4,19 @@ CREATE TYPE qs.questionary_entity_type AS ENUM ('legal', 'individual');
 
 CREATE TABLE qs.questionary
 (
-    id            BIGSERIAL                         NOT NULL,
-    owner_id      BIGINT                            NOT NULL,
-    type          qs.questionary_entity_type NOT NULL,
+    id            BIGSERIAL                   NOT NULL,
+    owner_id      BIGINT                      NOT NULL,
+    type          qs.questionary_entity_type  NOT NULL,
     inn           CHARACTER VARYING,
-    phone_number  CHARACTER VARYING                 NOT NULL,
-    email         CHARACTER VARYING                 NOT NULL,
-    site          CHARACTER VARYING                 NOT NULL,
-    reg_date      TIMESTAMP WITHOUT TIME ZONE       NOT NULL,
-    reg_place     CHARACTER VARYING                 NOT NULL,
-    okvd          CHARACTER VARYING                 NOT NULL,
-    activity_type CHARACTER VARYING                 NOT NULL,
-    property_info CHARACTER VARYING                 NOT NULL,
-    tax_resident  BOOLEAN                           NOT NULL DEFAULT FALSE,
+    phone_number  CHARACTER VARYING           NOT NULL,
+    email         CHARACTER VARYING           NOT NULL,
+    site          CHARACTER VARYING           NOT NULL,
+    reg_date      TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    reg_place     CHARACTER VARYING           NOT NULL,
+    okvd          CHARACTER VARYING           NOT NULL,
+    activity_type CHARACTER VARYING           NOT NULL,
+    property_info CHARACTER VARYING           NOT NULL,
+    tax_resident  BOOLEAN                     NOT NULL DEFAULT FALSE,
 
     CONSTRAINT questionary_pkey PRIMARY KEY (id)
 );
@@ -26,11 +26,9 @@ CREATE INDEX questionary_owner_id on qs.questionary (owner_id);
 CREATE TABLE qs.individual_entity_questionary
 (
     id                          BIGSERIAL         NOT NULL,
-    residence_name              CHARACTER VARYING,
-    residence_series            CHARACTER VARYING,
-    residence_number            CHARACTER VARYING,
-    residence_beginning_date    TIMESTAMP WITHOUT TIME ZONE,
-    residence_expiration_date   TIMESTAMP WITHOUT TIME ZONE,
+    identity_document_id        BIGINT            NOT NULL,
+    migration_card_id           BIGINT            NOT NULL,
+    residence_approve_id        BIGINT            NOT NULL,
     ogrnip                      CHARACTER VARYING NOT NULL,
     foreign_public_person       BOOLEAN           NOT NULL DEFAULT FALSE,
     foreign_relative_person     BOOLEAN           NOT NULL DEFAULT FALSE,
@@ -39,7 +37,10 @@ CREATE TABLE qs.individual_entity_questionary
     has_representative          BOOLEAN           NOT NULL DEFAULT FALSE,
     beneficial_owner            BOOLEAN           NOT NULL DEFAULT FALSE,
 
-    CONSTRAINT fk_individual_entity_to_questionary FOREIGN KEY (id) REFERENCES qs.questionary (id)
+    CONSTRAINT fk_individual_entity_to_questionary FOREIGN KEY (id) REFERENCES qs.questionary (id),
+    CONSTRAINT fk_individual_entity_to_identity_document FOREIGN KEY (identity_document_id) REFERENCES qs.identity_document (id),
+    CONSTRAINT fk_individual_entity_to_migration_card FOREIGN KEY (migration_card_id) REFERENCES qs.migration_card (id),
+    CONSTRAINT fk_individual_entity_to_residence_approve FOREIGN KEY (residence_approve_id) REFERENCES qs.residence_approve (id)
 );
 
 CREATE TABLE qs.legal_entity_questionary
@@ -87,27 +88,27 @@ CREATE TYPE qs.business_reputation AS ENUM ('provide_reviews', 'no_reviews');
 
 CREATE TABLE qs.additional_info
 (
-    id                    BIGSERIAL                       NOT NULL,
-    questionary_id        BIGINT                          NOT NULL,
-    staff_count           BOOLEAN                         NOT NULL DEFAULT FALSE,
+    id                    BIGSERIAL                NOT NULL,
+    questionary_id        BIGINT                   NOT NULL,
+    staff_count           BOOLEAN                  NOT NULL DEFAULT FALSE,
     accounting            CHARACTER VARYING,
     accounting_org        CHARACTER VARYING,
-    nko_relation_target   CHARACTER VARYING               NOT NULL,
-    relationship_with_nko CHARACTER VARYING               NOT NULL,
+    nko_relation_target   CHARACTER VARYING        NOT NULL,
+    relationship_with_nko CHARACTER VARYING        NOT NULL,
     month_operation_count qs.month_operation_count NOT NULL,
     month_operation_sum   qs.month_operation_sum   NOT NULL,
-    storage_facilities    BOOLEAN                         NOT NULL DEFAULT FALSE NOT NULL,
-    counterparties        CHARACTER VARYING               NOT NULL,
+    storage_facilities    BOOLEAN                  NOT NULL DEFAULT FALSE NOT NULL,
+    counterparties        CHARACTER VARYING        NOT NULL,
     relation_process      qs.relation_process      NOT NULL,
-    benefit_third_parties BOOLEAN                         NOT NULL DEFAULT FALSE NOT NULL,
+    benefit_third_parties BOOLEAN                  NOT NULL DEFAULT FALSE NOT NULL,
     business_reputation   qs.business_reputation   NOT NULL,
-    bank_details          CHARACTER VARYING               NOT NULL,
+    bank_details          CHARACTER VARYING        NOT NULL,
 
     CONSTRAINT additional_info_pkey PRIMARY KEY (id),
     CONSTRAINT fk_additional_info_to_questionary_data FOREIGN KEY (questionary_id) REFERENCES qs.questionary (id)
 );
 
-CREATE INDEX additional_info_to_questionary_id ON qs.additional_info (questionary_id);
+CREATE UNIQUE INDEX additional_info_to_questionary_id ON qs.additional_info (questionary_id);
 
 CREATE TABLE qs.financial_position
 (
@@ -158,33 +159,26 @@ CREATE TABLE qs.legal_org_info
 CREATE TABLE qs.russian_private_entity
 (
     id                BIGSERIAL                   NOT NULL,
-    questionary_id    BIGINT                      NOT NULL,
     first_name        CHARACTER VARYING           NOT NULL,
     second_name       CHARACTER VARYING           NOT NULL,
     middle_name       CHARACTER VARYING           NOT NULL,
     birth_date        TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    birth_place       TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     citizenship       CHARACTER VARYING           NOT NULL,
     residence_address CHARACTER VARYING           NOT NULL,
     actual_address    CHARACTER VARYING,
     contact_info      CHARACTER VARYING,
 
-    CONSTRAINT russian_private_entity_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_russian_private_entity_to_questionary FOREIGN KEY (questionary_id) REFERENCES qs.questionary (id)
+    CONSTRAINT russian_private_entity_pkey PRIMARY KEY (id)
 );
-
-CREATE INDEX russian_private_entity_questionary_id ON qs.russian_private_entity (questionary_id);
 
 CREATE TABLE qs.identity_document
 (
-    id             BIGSERIAL NOT NULL,
-    questionary_id BIGINT    NOT NULL,
-    name           BIGSERIAL NOT NULL,
+    id   BIGSERIAL NOT NULL,
+    name BIGSERIAL NOT NULL,
 
-    CONSTRAINT identity_document_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_identity_doc_questionary FOREIGN KEY (questionary_id) REFERENCES qs.questionary (id)
+    CONSTRAINT identity_document_pkey PRIMARY KEY (id)
 );
-
-CREATE INDEX identity_document_questionary_id ON qs.identity_document (questionary_id);
 
 CREATE TABLE qs.russian_passport
 (
@@ -201,32 +195,24 @@ CREATE TABLE qs.russian_passport
 CREATE TABLE qs.migration_card
 (
     id              BIGSERIAL                   NOT NULL,
-    questionary_id  BIGINT                      NOT NULL,
     card_number     CHARACTER VARYING           NOT NULL,
     beginning_date  TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     expiration_date TIMESTAMP WITHOUT TIME ZONE,
 
-    CONSTRAINT migration_card_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_migration_card_to_questionary_data FOREIGN KEY (questionary_id) REFERENCES qs.questionary (id)
+    CONSTRAINT migration_card_pkey PRIMARY KEY (id)
 );
-
-CREATE INDEX migration_card_questionary_id ON qs.migration_card (questionary_id);
 
 CREATE TABLE qs.residence_approve
 (
     id              BIGSERIAL                   NOT NULL,
-    questionary_id  BIGINT                      NOT NULL,
     name            CHARACTER VARYING           NOT NULL,
     series          CHARACTER VARYING,
     number          CHARACTER VARYING           NOT NULL,
     beginning_date  TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     expiration_date TIMESTAMP WITHOUT TIME ZONE NOT NULL,
 
-    CONSTRAINT residence_approve_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_residence_approve_to_questionary FOREIGN KEY (questionary_id) REFERENCES qs.questionary (id)
+    CONSTRAINT residence_approve_pkey PRIMARY KEY (id)
 );
-
-CREATE INDEX residence_approve_questionary_id ON qs.residence_approve (questionary_id);
 
 CREATE TABLE qs.legal_owner
 (
