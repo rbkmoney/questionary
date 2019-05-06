@@ -2,23 +2,112 @@ CREATE SCHEMA IF NOT EXISTS qs;
 
 CREATE TYPE qs.questionary_entity_type AS ENUM ('legal', 'individual');
 
+CREATE TABLE qs.license_info
+(
+    id         BIGSERIAL                   NOT NULL,
+    type       CHARACTER VARYING           NOT NULL,
+    number     CHARACTER VARYING           NOT NULL,
+    issue_date TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    issuer     CHARACTER VARYING           NOT NULL,
+    validity   TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+
+    CONSTRAINT license_info_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE qs.identity_document
+(
+    id   BIGSERIAL NOT NULL,
+    name BIGSERIAL NOT NULL,
+
+    CONSTRAINT identity_document_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE qs.russian_passport
+(
+    id          BIGSERIAL                   NOT NULL,
+    serial      CHARACTER VARYING,
+    number      CHARACTER VARYING           NOT NULL,
+    issuer      CHARACTER VARYING           NOT NULL,
+    issuer_code CHARACTER VARYING,
+    issued_at   TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+
+    CONSTRAINT fk_russian_passport_to_identity_document FOREIGN KEY (id) REFERENCES qs.identity_document (id)
+);
+
+CREATE TABLE qs.migration_card
+(
+    id              BIGSERIAL                   NOT NULL,
+    card_number     CHARACTER VARYING           NOT NULL,
+    beginning_date  TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    expiration_date TIMESTAMP WITHOUT TIME ZONE,
+
+    CONSTRAINT migration_card_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE qs.residence_approve
+(
+    id              BIGSERIAL                   NOT NULL,
+    name            CHARACTER VARYING           NOT NULL,
+    series          CHARACTER VARYING,
+    number          CHARACTER VARYING           NOT NULL,
+    beginning_date  TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    expiration_date TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+
+    CONSTRAINT residence_approve_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE qs.russian_private_entity
+(
+    id                BIGSERIAL                   NOT NULL,
+    first_name        CHARACTER VARYING           NOT NULL,
+    second_name       CHARACTER VARYING           NOT NULL,
+    middle_name       CHARACTER VARYING           NOT NULL,
+    birth_date        TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    birth_place       TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    citizenship       CHARACTER VARYING           NOT NULL,
+    residence_address CHARACTER VARYING           NOT NULL,
+    actual_address    CHARACTER VARYING,
+    contact_info      CHARACTER VARYING,
+
+    CONSTRAINT russian_private_entity_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE qs.legal_owner
+(
+    id                   BIGSERIAL NOT NULL,
+    private_entity_id    BIGINT    NOT NULL,
+    identity_document_id BIGINT    NOT NULL,
+    migration_card_id    BIGINT,
+    residence_approve_id BIGINT,
+    inn                  CHARACTER VARYING,
+    pdl_category         BOOLEAN   NOT NULL,
+
+    CONSTRAINT legal_approve_pkey PRIMARY KEY (id),
+    CONSTRAINT fk_legal_owner_to_private_entity FOREIGN KEY (private_entity_id) REFERENCES qs.russian_private_entity (id),
+    CONSTRAINT fk_legal_owner_to_identity_doc FOREIGN KEY (identity_document_id) REFERENCES qs.identity_document (id),
+    CONSTRAINT fk_legal_owner_to_migration_card FOREIGN KEY (migration_card_id) REFERENCES qs.migration_card (id),
+    CONSTRAINT fk_legal_owner_to_residence_approve FOREIGN KEY (residence_approve_id) REFERENCES qs.residence_approve (id)
+);
+
 CREATE TABLE qs.questionary
 (
-    id            BIGSERIAL                   NOT NULL,
-    owner_id      BIGINT                      NOT NULL,
-    type          qs.questionary_entity_type  NOT NULL,
-    inn           CHARACTER VARYING,
-    phone_number  CHARACTER VARYING           NOT NULL,
-    email         CHARACTER VARYING           NOT NULL,
-    site          CHARACTER VARYING           NOT NULL,
-    reg_date      TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    reg_place     CHARACTER VARYING           NOT NULL,
-    okvd          CHARACTER VARYING           NOT NULL,
-    activity_type CHARACTER VARYING           NOT NULL,
-    property_info CHARACTER VARYING           NOT NULL,
-    tax_resident  BOOLEAN                     NOT NULL DEFAULT FALSE,
+    id              BIGSERIAL                   NOT NULL,
+    owner_id        BIGINT                      NOT NULL,
+    license_info_id BIGINT                      NOT NULL,
+    type            qs.questionary_entity_type  NOT NULL,
+    inn             CHARACTER VARYING,
+    phone_number    CHARACTER VARYING           NOT NULL,
+    email           CHARACTER VARYING           NOT NULL,
+    site            CHARACTER VARYING           NOT NULL,
+    reg_date        TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    reg_place       CHARACTER VARYING           NOT NULL,
+    okvd            CHARACTER VARYING           NOT NULL,
+    activity_type   CHARACTER VARYING           NOT NULL,
+    property_info   CHARACTER VARYING           NOT NULL,
+    tax_resident    BOOLEAN                     NOT NULL DEFAULT FALSE,
 
-    CONSTRAINT questionary_pkey PRIMARY KEY (id)
+    CONSTRAINT questionary_pkey PRIMARY KEY (id),
+    CONSTRAINT fk_questionary_to_license_info FOREIGN KEY (license_info_id) REFERENCES qs.license_info (id)
 );
 
 CREATE INDEX questionary_owner_id on qs.questionary (owner_id);
@@ -26,6 +115,7 @@ CREATE INDEX questionary_owner_id on qs.questionary (owner_id);
 CREATE TABLE qs.individual_entity_questionary
 (
     id                          BIGSERIAL         NOT NULL,
+    private_entity_id           BIGINT            NOT NULL,
     identity_document_id        BIGINT            NOT NULL,
     migration_card_id           BIGINT            NOT NULL,
     residence_approve_id        BIGINT            NOT NULL,
@@ -38,6 +128,7 @@ CREATE TABLE qs.individual_entity_questionary
     beneficial_owner            BOOLEAN           NOT NULL DEFAULT FALSE,
 
     CONSTRAINT fk_individual_entity_to_questionary FOREIGN KEY (id) REFERENCES qs.questionary (id),
+    CONSTRAINT fk_individual_entity_to_private_entity_id FOREIGN KEY (private_entity_id) REFERENCES qs.russian_private_entity (id),
     CONSTRAINT fk_individual_entity_to_identity_document FOREIGN KEY (identity_document_id) REFERENCES qs.identity_document (id),
     CONSTRAINT fk_individual_entity_to_migration_card FOREIGN KEY (migration_card_id) REFERENCES qs.migration_card (id),
     CONSTRAINT fk_individual_entity_to_residence_approve FOREIGN KEY (residence_approve_id) REFERENCES qs.residence_approve (id)
@@ -46,6 +137,7 @@ CREATE TABLE qs.individual_entity_questionary
 CREATE TABLE qs.legal_entity_questionary
 (
     id                 BIGSERIAL         NOT NULL,
+    legal_owner_id     BIGINT            NOT NULL,
     name               CHARACTER VARYING NOT NULL,
     foreign_name       CHARACTER VARYING,
     legal_form         CHARACTER VARYING NOT NULL,
@@ -59,24 +151,10 @@ CREATE TABLE qs.legal_entity_questionary
     owner_resident     BOOLEAN           NOT NULL DEFAULT FALSE,
     fatca              BOOLEAN           NOT NULL DEFAULT FALSE,
 
-    CONSTRAINT fk_legal_entity_to_questionary FOREIGN KEY (id) REFERENCES qs.questionary (id)
+    CONSTRAINT fk_legal_entity_to_questionary FOREIGN KEY (id) REFERENCES qs.questionary (id),
+    CONSTRAINT fk_legal_entity_to_legal_owner FOREIGN KEY (id) REFERENCES qs.legal_owner (id)
 );
 
-CREATE TABLE qs.license_info
-(
-    id             BIGSERIAL                   NOT NULL,
-    questionary_id BIGINT                      NOT NULL,
-    type           CHARACTER VARYING           NOT NULL,
-    number         CHARACTER VARYING           NOT NULL,
-    issue_date     TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    issuer         CHARACTER VARYING           NOT NULL,
-    validity       TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-
-    CONSTRAINT license_info_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_license_info_to_questionary_data FOREIGN KEY (questionary_id) REFERENCES qs.questionary (id)
-);
-
-CREATE UNIQUE INDEX license_info_to_q_data_id ON qs.license_info (questionary_id);
 
 CREATE TYPE qs.month_operation_count AS ENUM ('lt_ten', 'btw_ten_to_fifty', 'gt_fifty');
 
@@ -89,7 +167,6 @@ CREATE TYPE qs.business_reputation AS ENUM ('provide_reviews', 'no_reviews');
 CREATE TABLE qs.additional_info
 (
     id                    BIGSERIAL                NOT NULL,
-    questionary_id        BIGINT                   NOT NULL,
     staff_count           BOOLEAN                  NOT NULL DEFAULT FALSE,
     accounting            CHARACTER VARYING,
     accounting_org        CHARACTER VARYING,
@@ -105,10 +182,8 @@ CREATE TABLE qs.additional_info
     bank_details          CHARACTER VARYING        NOT NULL,
 
     CONSTRAINT additional_info_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_additional_info_to_questionary_data FOREIGN KEY (questionary_id) REFERENCES qs.questionary (id)
+    CONSTRAINT fk_additional_info_to_questionary FOREIGN KEY (id) REFERENCES qs.questionary (id)
 );
-
-CREATE UNIQUE INDEX additional_info_to_questionary_id ON qs.additional_info (questionary_id);
 
 CREATE TABLE qs.financial_position
 (
@@ -155,85 +230,6 @@ CREATE TABLE qs.legal_org_info
     CONSTRAINT legal_org_info_pkey PRIMARY KEY (id),
     CONSTRAINT fk_legal_org_info_to_questionary FOREIGN KEY (questionary_id) REFERENCES qs.questionary (id)
 );
-
-CREATE TABLE qs.russian_private_entity
-(
-    id                BIGSERIAL                   NOT NULL,
-    first_name        CHARACTER VARYING           NOT NULL,
-    second_name       CHARACTER VARYING           NOT NULL,
-    middle_name       CHARACTER VARYING           NOT NULL,
-    birth_date        TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    birth_place       TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    citizenship       CHARACTER VARYING           NOT NULL,
-    residence_address CHARACTER VARYING           NOT NULL,
-    actual_address    CHARACTER VARYING,
-    contact_info      CHARACTER VARYING,
-
-    CONSTRAINT russian_private_entity_pkey PRIMARY KEY (id)
-);
-
-CREATE TABLE qs.identity_document
-(
-    id   BIGSERIAL NOT NULL,
-    name BIGSERIAL NOT NULL,
-
-    CONSTRAINT identity_document_pkey PRIMARY KEY (id)
-);
-
-CREATE TABLE qs.russian_passport
-(
-    id          BIGSERIAL                   NOT NULL,
-    serial      CHARACTER VARYING,
-    number      CHARACTER VARYING           NOT NULL,
-    issuer      CHARACTER VARYING           NOT NULL,
-    issuer_code CHARACTER VARYING,
-    issued_at   TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-
-    CONSTRAINT fk_russian_passport_to_identity_document FOREIGN KEY (id) REFERENCES qs.identity_document (id)
-);
-
-CREATE TABLE qs.migration_card
-(
-    id              BIGSERIAL                   NOT NULL,
-    card_number     CHARACTER VARYING           NOT NULL,
-    beginning_date  TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    expiration_date TIMESTAMP WITHOUT TIME ZONE,
-
-    CONSTRAINT migration_card_pkey PRIMARY KEY (id)
-);
-
-CREATE TABLE qs.residence_approve
-(
-    id              BIGSERIAL                   NOT NULL,
-    name            CHARACTER VARYING           NOT NULL,
-    series          CHARACTER VARYING,
-    number          CHARACTER VARYING           NOT NULL,
-    beginning_date  TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-    expiration_date TIMESTAMP WITHOUT TIME ZONE NOT NULL,
-
-    CONSTRAINT residence_approve_pkey PRIMARY KEY (id)
-);
-
-CREATE TABLE qs.legal_owner
-(
-    id                   BIGSERIAL NOT NULL,
-    questionary_id       BIGINT    NOT NULL,
-    private_entity_id    BIGINT    NOT NULL,
-    identity_document_id BIGINT    NOT NULL,
-    migration_card_id    BIGINT,
-    residence_approve_id BIGINT,
-    inn                  CHARACTER VARYING,
-    pdl_category         BOOLEAN   NOT NULL,
-
-    CONSTRAINT legal_approve_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_legal_owner_to_questionary_data FOREIGN KEY (questionary_id) REFERENCES qs.questionary (id),
-    CONSTRAINT fk_legal_owner_to_private_entity FOREIGN KEY (private_entity_id) REFERENCES qs.russian_private_entity (id),
-    CONSTRAINT fk_legal_owner_to_identity_doc FOREIGN KEY (identity_document_id) REFERENCES qs.identity_document (id),
-    CONSTRAINT fk_legal_owner_to_migration_card FOREIGN KEY (migration_card_id) REFERENCES qs.migration_card (id),
-    CONSTRAINT fk_legal_owner_to_residence_approve FOREIGN KEY (residence_approve_id) REFERENCES qs.residence_approve (id)
-);
-
-CREATE UNIQUE INDEX legal_owner_questionary_id ON qs.legal_owner (questionary_id);
 
 CREATE TABLE qs.beneficial_owner
 (
