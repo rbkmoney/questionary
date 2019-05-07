@@ -167,7 +167,7 @@ CREATE TYPE qs.business_reputation AS ENUM ('provide_reviews', 'no_reviews');
 CREATE TABLE qs.additional_info
 (
     id                    BIGSERIAL                NOT NULL,
-    staff_count           BOOLEAN                  NOT NULL DEFAULT FALSE,
+    staff_count           INTEGER                  NOT NULL,
     has_accountant        BOOLEAN                  NOT NULL DEFAULT FALSE,
     accounting            CHARACTER VARYING,
     accounting_org        CHARACTER VARYING,
