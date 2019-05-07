@@ -164,6 +164,28 @@ CREATE TYPE qs.relation_process AS ENUM ('insolvency_proceedings', 'bankrupt_jud
 
 CREATE TYPE qs.business_reputation AS ENUM ('provide_reviews', 'no_reviews');
 
+CREATE TYPE qs.financial_pos_type AS ENUM (
+    'annual_financial_statements',
+    'annual_tax_return_with_mark',
+    'quarterly_tax_return_with_mark',
+    'annual_tax_return_without_mark',
+    'quarterly_tax_return_without_mark',
+    'annual_tax_return_without_mark_paper',
+    'statement_of_duty',
+    'letter_of_guarantee'
+    );
+
+CREATE TYPE qs.business_info_type AS ENUM (
+    'wholesale_trade_business',
+    'retail_trade_business',
+    'production_business',
+    'building_business',
+    'transport_business',
+    'securities_trading_business',
+    'mediation_in_property_business',
+    'another_business'
+    );
+
 CREATE TABLE qs.additional_info
 (
     id                    BIGSERIAL                NOT NULL,
@@ -188,9 +210,9 @@ CREATE TABLE qs.additional_info
 
 CREATE TABLE qs.financial_position
 (
-    id                 BIGSERIAL         NOT NULL,
-    additional_info_id BIGINT            NOT NULL,
-    description        CHARACTER VARYING NOT NULL,
+    id                 BIGSERIAL             NOT NULL,
+    additional_info_id BIGINT                NOT NULL,
+    type               qs.financial_pos_type NOT NULL,
 
     CONSTRAINT financial_position_pkey PRIMARY KEY (id),
     CONSTRAINT fk_financial_position_to_additional_info FOREIGN KEY (additional_info_id) REFERENCES qs.additional_info (id)
@@ -200,9 +222,9 @@ CREATE INDEX financial_position_additional_info_id ON qs.financial_position (add
 
 CREATE TABLE qs.business_info
 (
-    id                 BIGSERIAL         NOT NULL,
-    additional_info_id BIGINT            NOT NULL,
-    description        CHARACTER VARYING NOT NULL,
+    id                 BIGSERIAL             NOT NULL,
+    additional_info_id BIGINT                NOT NULL,
+    type               qs.business_info_type NOT NULL,
 
     CONSTRAINT business_info_pkey PRIMARY KEY (id),
     CONSTRAINT fk_business_info_to_additional_info FOREIGN KEY (additional_info_id) REFERENCES qs.additional_info (id)
