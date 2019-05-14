@@ -91,7 +91,7 @@ CREATE TABLE qs.questionary
     id                BIGSERIAL                  NOT NULL,
     questionary_id    CHARACTER VARYING          NOT NULL,
     version           BIGINT                     NOT NULL,
-    owner_id          BIGINT,
+    owner_id          CHARACTER VARYING,
     license_info_id   BIGINT,
     type              qs.questionary_entity_type NOT NULL,
     inn               CHARACTER VARYING,
