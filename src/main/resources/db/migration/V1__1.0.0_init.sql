@@ -59,7 +59,7 @@ CREATE TABLE qs.russian_private_entity
     second_name       CHARACTER VARYING,
     middle_name       CHARACTER VARYING,
     birth_date        TIMESTAMP WITHOUT TIME ZONE,
-    birth_place       TIMESTAMP WITHOUT TIME ZONE,
+    birth_place       CHARACTER VARYING,
     citizenship       CHARACTER VARYING,
     residence_address CHARACTER VARYING,
     actual_address    CHARACTER VARYING,
