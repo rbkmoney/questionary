@@ -191,7 +191,6 @@ CREATE TABLE qs.head
 (
     id                  BIGSERIAL NOT NULL,
     questionary_id      BIGINT    NOT NULL,
-    questionary_version BIGINT    NOT NULL,
     first_name          CHARACTER VARYING,
     second_name         CHARACTER VARYING,
     middle_name         CHARACTER VARYING,
@@ -312,7 +311,6 @@ CREATE TABLE qs.beneficial_owner
 (
     id                   BIGSERIAL NOT NULL,
     questionary_id       BIGINT    NOT NULL,
-    questionary_version  BIGINT    NOT NULL,
     private_entity_id    BIGINT,
     identity_document_id BIGINT,
     migration_card_id    BIGINT,
@@ -329,4 +327,4 @@ CREATE TABLE qs.beneficial_owner
     CONSTRAINT fk_beneficial_owner_to_residence_approve FOREIGN KEY (residence_approve_id) REFERENCES qs.residence_approve (id)
 );
 
-CREATE INDEX beneficial_owner_questionary_idx ON qs.beneficial_owner (questionary_id, questionary_version)
+CREATE INDEX beneficial_owner_questionary_idx ON qs.beneficial_owner (questionary_id)
