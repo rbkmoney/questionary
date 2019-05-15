@@ -42,7 +42,7 @@ CREATE TABLE qs.migration_card
 
 CREATE TABLE qs.residence_approve
 (
-    id              BIGSERIAL,
+    id              BIGSERIAL NOT NULL,
     name            CHARACTER VARYING,
     series          CHARACTER VARYING,
     number          CHARACTER VARYING,
