@@ -18,7 +18,7 @@ public class BusinessInfoConverter implements ThriftConverter<BusinessInfo, com.
                 businessInfo.setTransportBusiness(new TransportBusiness());
                 break;
             case production_business:
-                businessInfo.setProdictionBusiness(new ProductionBusiness());
+                businessInfo.setProductionBusiness(new ProductionBusiness());
                 break;
             case retail_trade_business:
                 businessInfo.setRetailTradeBusiness(new RetailTradeBusiness());
