@@ -58,20 +58,22 @@ public class QuestionaryServiceImpl implements QuestionaryService {
 
         // Save questionary
         try {
+            log.debug("Save questionary: id={}, ownerId={}, version={}",
+                    questionaryParams.getId(), questionaryParams.getOwnerId(), questionary.getVersion());
             final Long questionaryId = questionaryDao.saveQuestionary(questionary);
+            log.debug("QuestionaryId={}", questionaryId);
             if (questionaryHolder.getLegalEntityQuestionaryHolder() != null) {
                 // Save legal entity questionary
                 final LegalEntityQuestionaryHolder legalEntityQuestionaryHolder = questionaryHolder.getLegalEntityQuestionaryHolder();
-                log.debug("Save legal questionary");
+                log.debug("Save legal questionary: id={}", questionaryId);
                 saveLegalEntityQuestionary(questionaryId, legalEntityQuestionaryHolder);
             } else if (questionaryHolder.getIndividualEntityQuestionaryHolder() != null) {
                 // Save individual entity questionary
                 final IndividualEntityQuestionaryHolder individualEntityQuestionaryHolder = questionaryHolder
                         .getIndividualEntityQuestionaryHolder();
-                log.debug("Save individual entity questionary");
+                log.debug("Save individual entity questionary: id={}", questionaryId);
                 saveIndividualEntityQuestionary(questionaryId, individualEntityQuestionaryHolder);
             }
-            log.info("Questionary successfully saved");
         } catch (DaoException ex) {
             if (ex.getCause() instanceof DuplicateKeyException) {
                 throw new QuestionaryVersionConflict();
@@ -83,10 +85,12 @@ public class QuestionaryServiceImpl implements QuestionaryService {
 
     @Override
     public Snapshot getQuestionary(String questionaryId, Reference reference) throws QuestionaryNotFound {
-        Questionary questionary = null;
+        Questionary questionary;
         if (reference.isSetHead()) {
+            log.debug("Get questionary head version: id={}", questionaryId);
             questionary = questionaryDao.getLatestQuestionary(questionaryId);
         } else {
+            log.debug("Get questionary by version: id={}, version={}", questionaryId, reference.getVersion());
             questionary = questionaryDao.getQuestionaryByIdAndVersion(questionaryId, reference.getVersion());
         }
 
