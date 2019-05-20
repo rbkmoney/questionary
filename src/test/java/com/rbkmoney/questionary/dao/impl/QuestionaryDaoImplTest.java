@@ -75,7 +75,8 @@ public class QuestionaryDaoImplTest extends AbstractIntegrationTest {
     @Test
     public void saveLegalEntityQuestionaryTest() {
         Long questionaryId = questionaryDao.saveQuestionary(questionary);
-        individualEntityQuestionary.setId(questionaryId);
+        legalEntityQuestionary.setId(questionaryId);
+        legalEntityQuestionary.setLegalOwnerId(null);
 
         Long legalEntityId = questionaryDao.saveLegalEntity(legalEntityQuestionary);
 

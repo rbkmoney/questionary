@@ -1,5 +1,6 @@
 package com.rbkmoney.questionary.dao.impl;
 
+import com.rbkmoney.questionary.AbstractIntegrationTest;
 import com.rbkmoney.questionary.dao.AdditionalInfoDao;
 import com.rbkmoney.questionary.dao.BusinessInfoDao;
 import com.rbkmoney.questionary.dao.QuestionaryDao;
@@ -15,7 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class BusinessInfoDaoImplTest {
+public class BusinessInfoDaoImplTest extends AbstractIntegrationTest {
 
     @Autowired
     private QuestionaryDao questionaryDao;
@@ -66,6 +67,6 @@ public class BusinessInfoDaoImplTest {
                 .peek(businessInfo -> businessInfo.setAdditionalInfoId(additionalInfoId))
                 .collect(Collectors.toList());
         businessInfoDao.saveAll(businessInfoList);
-        Assert.assertEquals(5, businessInfoDao.getByAdditionalInfoId(additionalInfoId));
+        Assert.assertEquals(5, businessInfoDao.getByAdditionalInfoId(additionalInfoId).size());
     }
 }
