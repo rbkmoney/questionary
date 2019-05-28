@@ -72,10 +72,17 @@ public class LegalEntityQuestionaryConverter implements ThriftConverter<LegalEnt
                     .collect(Collectors.toList());
             foundersInfo.setHeads(headList);
         }
-        if (value.getHead() != null) {
-            foundersInfo.setLegalOwner(headConverter.convertToThrift(value.getHead()));
-        }
-        russianLegalEntity.setFoundersInfo(foundersInfo);
+        final Head head = new Head();
+        final IndividualPerson individualPerson = new IndividualPerson();
+        individualPerson.setInn(value.getLegalEntityQuestionary().getFounderOwnerInn());
+        final PersonAnthroponym personAnthroponym = new PersonAnthroponym();
+        personAnthroponym.setFirstName(value.getLegalEntityQuestionary().getFounderOwnerFirstName());
+        personAnthroponym.setSecondName(value.getLegalEntityQuestionary().getFounderOwnerSecondName());
+        personAnthroponym.setMiddleName(value.getLegalEntityQuestionary().getFounderOwnerMiddleName());
+        individualPerson.setFio(personAnthroponym);
+        head.setIndividualPerson(individualPerson);
+        head.setPosition(value.getLegalEntityQuestionary().getFounderOwnerPosition());
+        foundersInfo.setLegalOwner(head);        russianLegalEntity.setFoundersInfo(foundersInfo);
 
         final LicenseInfo licenseInfo = new LicenseInfo();
         if (value.getQuestionary().getLicenseIssueDate() != null) {
@@ -160,9 +167,20 @@ public class LegalEntityQuestionaryConverter implements ThriftConverter<LegalEnt
                     .collect(Collectors.toList());
         }
 
-        com.rbkmoney.questionary.domain.tables.pojos.Head legalOwnerHead = null;
         if (value.isSetFoundersInfo() && value.getFoundersInfo().isSetLegalOwner()) {
-            legalOwnerHead = headConverter.convertFromThrift(value.getFoundersInfo().getLegalOwner());
+            final Head legalOwner = value.getFoundersInfo().getLegalOwner();
+            if (legalOwner != null) {
+                if (legalOwner.isSetIndividualPerson()) {
+                    legalEntityQuestionary.setFounderOwnerInn(legalOwner.getIndividualPerson().getInn());
+                    if (legalOwner.getIndividualPerson().isSetFio()) {
+                        final PersonAnthroponym personAnthroponym = legalOwner.getIndividualPerson().getFio();
+                        legalEntityQuestionary.setFounderOwnerFirstName(personAnthroponym.getFirstName());
+                        legalEntityQuestionary.setFounderOwnerSecondName(personAnthroponym.getSecondName());
+                        legalEntityQuestionary.setFounderOwnerPosition(personAnthroponym.getMiddleName());
+                    }
+                }
+                legalEntityQuestionary.setFounderOwnerPosition(legalOwner.getPosition());
+            }
         }
 
         List<PropertyInfo> propertyInfoList = null;
@@ -193,7 +211,6 @@ public class LegalEntityQuestionaryConverter implements ThriftConverter<LegalEnt
                 .legalOwner(legalOwnerInfo)
                 .founderList(founderList)
                 .headList(headList)
-                .head(legalOwnerHead)
                 .propertyInfoList(propertyInfoList)
                 .additionalInfoHolder(additionalInfoHolder)
                 .beneficialOwnerList(beneficialOwnerHolderList)

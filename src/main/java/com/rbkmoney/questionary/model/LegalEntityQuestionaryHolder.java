@@ -22,8 +22,6 @@ public class LegalEntityQuestionaryHolder {
 
     private List<Head> headList;
 
-    private Head head;
-
     private List<PropertyInfo> propertyInfoList;
 
     private AdditionalInfoHolder additionalInfoHolder;

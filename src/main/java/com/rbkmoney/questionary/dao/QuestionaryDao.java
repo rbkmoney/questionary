@@ -20,6 +20,10 @@ public interface QuestionaryDao {
 
     IndividualEntity getIndividualEntityById(Long id);
 
+    IndividualEntityQuestionary getIndividualEntityQuestionaryById(Long id);
+
+    LegalEntityQuestionary getLegalEntityQuestionaryById(Long id);
+
     Long saveLegalEntity(LegalEntityQuestionary questionary);
 
     LegalEntity getLegalEntityById(Long id);

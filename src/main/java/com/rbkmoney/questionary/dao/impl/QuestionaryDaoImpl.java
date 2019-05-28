@@ -31,6 +31,8 @@ public class QuestionaryDaoImpl extends AbstractGenericDao implements Questionar
 
     private final RowMapper<IndividualEntityQuestionary> individualEntityQuestionaryRowMapper;
 
+    private final RowMapper<LegalEntityQuestionary> legalEntityQuestionaryRowMapper;
+
     private final IndividualEntityQuestionaryMapper individualEntityQuestionaryMapper;
 
     private final LegalEntityQuestionaryMapper legalEntityQuestionaryMapper;
@@ -42,6 +44,7 @@ public class QuestionaryDaoImpl extends AbstractGenericDao implements Questionar
         this.individualEntityQuestionaryRowMapper = new RecordRowMapper<>(
                 INDIVIDUAL_ENTITY_QUESTIONARY,
                 IndividualEntityQuestionary.class);
+        this.legalEntityQuestionaryRowMapper = new RecordRowMapper<>(LEGAL_ENTITY_QUESTIONARY, LegalEntityQuestionary.class);
         this.individualEntityQuestionaryMapper = new IndividualEntityQuestionaryMapper();
         this.legalEntityQuestionaryMapper = new LegalEntityQuestionaryMapper();
     }
@@ -98,6 +101,21 @@ public class QuestionaryDaoImpl extends AbstractGenericDao implements Questionar
                 .join(QUESTIONARY).on(INDIVIDUAL_ENTITY_QUESTIONARY.ID.eq(QUESTIONARY.ID)))
                 .where(INDIVIDUAL_ENTITY_QUESTIONARY.ID.eq(individualEntityId));
         return fetchOne(query, individualEntityQuestionaryMapper);
+    }
+
+    @Override
+    public IndividualEntityQuestionary getIndividualEntityQuestionaryById(Long id) {
+        Query query = getDslContext().selectFrom(INDIVIDUAL_ENTITY_QUESTIONARY)
+                .where(INDIVIDUAL_ENTITY_QUESTIONARY.ID.eq(id));
+        return fetchOne(query, individualEntityQuestionaryRowMapper);
+
+    }
+
+    @Override
+    public LegalEntityQuestionary getLegalEntityQuestionaryById(Long id) {
+        Query query = getDslContext().selectFrom(LEGAL_ENTITY_QUESTIONARY)
+                .where(LEGAL_ENTITY_QUESTIONARY.ID.eq(id));
+        return fetchOne(query, legalEntityQuestionaryRowMapper);
     }
 
     @Override

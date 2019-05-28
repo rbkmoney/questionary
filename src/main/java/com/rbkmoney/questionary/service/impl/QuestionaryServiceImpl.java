@@ -1,21 +1,16 @@
 package com.rbkmoney.questionary.service.impl;
 
 import com.rbkmoney.dao.DaoException;
-import com.rbkmoney.geck.common.util.TypeUtil;
-import com.rbkmoney.questionary.AdditionalInfo;
-import com.rbkmoney.questionary.*;
-import com.rbkmoney.questionary.BeneficialOwner;
-import com.rbkmoney.questionary.Head;
 import com.rbkmoney.questionary.converter.*;
 import com.rbkmoney.questionary.dao.*;
 import com.rbkmoney.questionary.domain.enums.QuestionaryEntityType;
-import com.rbkmoney.questionary.domain.tables.pojos.BusinessInfo;
-import com.rbkmoney.questionary.domain.tables.pojos.FinancialPosition;
-import com.rbkmoney.questionary.domain.tables.pojos.Founder;
-import com.rbkmoney.questionary.domain.tables.pojos.*;
 import com.rbkmoney.questionary.domain.tables.pojos.Questionary;
+import com.rbkmoney.questionary.domain.tables.pojos.*;
 import com.rbkmoney.questionary.manage.*;
-import com.rbkmoney.questionary.model.*;
+import com.rbkmoney.questionary.model.AdditionalInfoHolder;
+import com.rbkmoney.questionary.model.IndividualEntityQuestionaryHolder;
+import com.rbkmoney.questionary.model.LegalEntityQuestionaryHolder;
+import com.rbkmoney.questionary.model.QuestionaryHolder;
 import com.rbkmoney.questionary.service.QuestionaryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -98,103 +93,34 @@ public class QuestionaryServiceImpl implements QuestionaryService {
             throw new QuestionaryNotFound();
         }
 
-        final var thriftQuestionary = new com.rbkmoney.questionary.manage.Questionary();
+        final var questionaryHolderBuilder = QuestionaryHolder.builder();
+        questionaryHolderBuilder.questionary(questionary);
+        if (questionary.getType() == QuestionaryEntityType.individual) {
+            final var individualEntityQuestionaryHolderBuilder = IndividualEntityQuestionaryHolder.builder();
+            final IndividualEntityQuestionary individualEntityQuestionary = questionaryDao.getIndividualEntityQuestionaryById(questionary.getId());
+            individualEntityQuestionaryHolderBuilder.questionary(questionary);
+            individualEntityQuestionaryHolderBuilder.individualEntityQuestionary(individualEntityQuestionary);
+            individualEntityQuestionaryHolderBuilder.additionalInfoHolder(getAdditionalInfoById(questionary.getId()));
+            individualEntityQuestionaryHolderBuilder.propertyInfoList(propertyInfoDao.getByQuestionaryId(questionary.getId()));
+        } else if (questionary.getType() == QuestionaryEntityType.legal) {
+            final var legalEntityQuestionaryHolderBuilder = LegalEntityQuestionaryHolder.builder();
+            final LegalEntityQuestionary legalEntityQuestionary = questionaryDao.getLegalEntityQuestionaryById(questionary.getId());
+            legalEntityQuestionaryHolderBuilder.questionary(questionary);
+            legalEntityQuestionaryHolderBuilder.legalEntityQuestionary(legalEntityQuestionary);
+            legalEntityQuestionaryHolderBuilder.legalOwner(legalOwnerDao.getById(legalEntityQuestionary.getLegalOwnerId()));
+            legalEntityQuestionaryHolderBuilder.headList(headDao.getByQuestionaryId(questionary.getId()));
+            legalEntityQuestionaryHolderBuilder.propertyInfoList(propertyInfoDao.getByQuestionaryId(questionary.getId()));
+            legalEntityQuestionaryHolderBuilder.additionalInfoHolder(getAdditionalInfoById(questionary.getId()));
+            legalEntityQuestionaryHolderBuilder.beneficialOwnerList(beneficialOwnerDao.getByQuestionaryId(questionary.getId()));
+            legalEntityQuestionaryHolderBuilder.founderList(founderDao.getByQuestionaryId(questionary.getId()));
+        }
+
+        final QuestionaryParams questionaryParams = questionaryParamsConverter.convertToThrift(questionaryHolderBuilder.build());
+
+        final com.rbkmoney.questionary.manage.Questionary thriftQuestionary = new com.rbkmoney.questionary.manage.Questionary();
         thriftQuestionary.setId(questionary.getQuestionaryId());
         thriftQuestionary.setOwnerId(questionary.getOwnerId());
-
-        final QuestionaryData questionaryData = new QuestionaryData();
-        final Contractor contractor = new Contractor();
-        if (questionary.getType() == QuestionaryEntityType.legal) {
-            final LegalEntity legalEntity = questionaryDao.getLegalEntityById(questionary.getId());
-            final RussianLegalEntity russianLegalEntity = legalEntity.getRussianLegalEntity();
-
-            final List<com.rbkmoney.questionary.Head> headList = headDao.getByQuestionaryId(questionary.getId()).stream()
-                    .map(headConverter::convertToThrift)
-                    .collect(Collectors.toList());
-            russianLegalEntity.getFoundersInfo().setHeads(headList);
-
-            final List<com.rbkmoney.questionary.Founder> founderList = founderDao.getByQuestionaryId(questionary.getId()).stream()
-                    .map(founderConverter::convertToThrift)
-                    .collect(Collectors.toList());
-            russianLegalEntity.getFoundersInfo().setFounders(founderList);
-
-            final List<String> propertyInfoList = propertyInfoDao.getByQuestionaryId(questionary.getId()).stream()
-                    .map(PropertyInfo::getDescription)
-                    .collect(Collectors.toList());
-            russianLegalEntity.setPropertyInfo(propertyInfoList);
-
-            final List<BeneficialOwner> beneficialOwnerList = beneficialOwnerDao.getByQuestionaryId(questionary.getId()).stream()
-                    .map(beneficialOwnerConverter::convertToThrift)
-                    .collect(Collectors.toList());
-            russianLegalEntity.setBeneficialOwners(beneficialOwnerList);
-
-            final AdditionalInfo additionalInfo = getAdditionalInfoById(questionary.getId());
-            russianLegalEntity.setAdditionalInfo(additionalInfo);
-
-            final LicenseInfo licenseInfo = new LicenseInfo();
-            if (questionary.getLicenseExpirationDate() != null) {
-                licenseInfo.setExpirationDate(TypeUtil.temporalToString(questionary.getLicenseExpirationDate()));
-            }
-            if (questionary.getLicenseEffectiveDate() != null) {
-                licenseInfo.setEffectiveDate(TypeUtil.temporalToString(questionary.getLicenseEffectiveDate()));
-            }
-            if (questionary.getLicenseIssueDate() != null) {
-                licenseInfo.setIssueDate(TypeUtil.temporalToString(questionary.getLicenseIssueDate()));
-            }
-            licenseInfo.setIssuerName(questionary.getLicenseIssuerName());
-            licenseInfo.setOfficialNum(questionary.getLicenseOfficialNum());
-            licenseInfo.setLicensedActivity(questionary.getLicenseLicensedActivity());
-            russianLegalEntity.setLicenseInfo(licenseInfo);
-
-            final Activity activity = new Activity();
-            activity.setCode(questionary.getOkvd());
-            activity.setDescription(questionary.getActivityType());
-            russianLegalEntity.setPrincipalActivity(activity);
-
-            contractor.setLegalEntity(legalEntity);
-        } else if (questionary.getType() == QuestionaryEntityType.individual) {
-            final IndividualEntity individualEntity = questionaryDao.getIndividualEntityById(questionary.getId());
-            final RussianIndividualEntity russianIndividualEntity = individualEntity.getRussianIndividualEntity();
-
-            final List<String> propertyInfoList = propertyInfoDao.getByQuestionaryId(questionary.getId()).stream()
-                    .map(PropertyInfo::getDescription)
-                    .collect(Collectors.toList());
-            russianIndividualEntity.setPropertyInfo(propertyInfoList);
-
-            final AdditionalInfo additionalInfo = getAdditionalInfoById(questionary.getId());
-            russianIndividualEntity.setAdditionalInfo(additionalInfo);
-
-            contractor.setIndividualEntity(individualEntity);
-        }
-        questionaryData.setContractor(contractor);
-
-        final ShopInfo shopInfo = new ShopInfo();
-        final ShopDetails shopDetails = new ShopDetails();
-        shopDetails.setName(questionary.getShopName());
-        shopDetails.setDescription(questionary.getShopDescription());
-        shopInfo.setDetails(shopDetails);
-        final ShopLocation shopLocation = new ShopLocation();
-        if (questionary.getShopUrl() != null) {
-            shopLocation.setUrl(questionary.getShopUrl());
-        }
-        shopInfo.setLocation(shopLocation);
-        questionaryData.setShopInfo(shopInfo);
-
-        final BankAccount bankAccount = new BankAccount();
-        final RussianBankAccount russianBankAccount = new RussianBankAccount();
-        russianBankAccount.setBankName(questionary.getBankName());
-        russianBankAccount.setBankBik(questionary.getBankBik());
-        russianBankAccount.setBankPostAccount(questionary.getBankPostAccount());
-        russianBankAccount.setAccount(questionary.getBankAccount());
-        bankAccount.setRussianBankAccount(russianBankAccount);
-        questionaryData.setBankAccount(bankAccount);
-
-        final ContactInfo contactInfo = new ContactInfo();
-        contactInfo.setEmail(questionary.getEmail());
-        contactInfo.setPhoneNumber(questionary.getPhoneNumber());
-        questionaryData.setContactInfo(contactInfo);
-
-        thriftQuestionary.setData(questionaryData);
+        thriftQuestionary.setData(questionaryParams.getData());
 
         return new Snapshot(questionary.getVersion(), thriftQuestionary);
     }
@@ -283,18 +209,16 @@ public class QuestionaryServiceImpl implements QuestionaryService {
         }
     }
 
-    private AdditionalInfo getAdditionalInfoById(Long id) {
+    private AdditionalInfoHolder getAdditionalInfoById(Long id) {
         final var additionalInfo = additionalInfoDao.getById(id);
         final List<FinancialPosition> financialPositionList = financialPositionDao.getByAdditionalInfoId(id);
         final List<BusinessInfo> businessInfoList = businessInfoDao.getByAdditionalInfoId(id);
 
-        final AdditionalInfoHolder additionalInfoHolder = AdditionalInfoHolder.builder()
+        return AdditionalInfoHolder.builder()
                 .additionalInfo(additionalInfo)
                 .financialPositionList(financialPositionList)
                 .businessInfoList(businessInfoList)
                 .build();
-
-        return additionalInfoConverter.convertToThrift(additionalInfoHolder);
     }
 
 }
