@@ -9,6 +9,7 @@ import com.rbkmoney.questionary.manage.QuestionaryParams;
 import com.rbkmoney.questionary.model.IndividualEntityQuestionaryHolder;
 import com.rbkmoney.questionary.model.LegalEntityQuestionaryHolder;
 import com.rbkmoney.questionary.model.QuestionaryHolder;
+import com.rbkmoney.questionary.util.ThriftUtil;
 
 public class QuestionaryParamsConverter implements ThriftConverter<QuestionaryHolder, QuestionaryParams> {
 
@@ -34,14 +35,14 @@ public class QuestionaryParamsConverter implements ThriftConverter<QuestionaryHo
         questionaryData.setContactInfo(contactInfo);
 
         final ShopInfo shopInfo = new ShopInfo();
-        ShopDetails shopDetails = new ShopDetails();
+        final ShopDetails shopDetails = new ShopDetails();
         shopDetails.setName(value.getQuestionary().getShopName());
         shopDetails.setDescription(value.getQuestionary().getShopDescription());
-        shopInfo.setDetails(shopDetails);
+        ThriftUtil.setIfNotEmpty(shopDetails, shopInfo::setDetails);
         ShopLocation shopLocation = new ShopLocation();
         shopLocation.setUrl(value.getQuestionary().getShopUrl());
-        shopInfo.setLocation(shopLocation);
-        questionaryData.setShopInfo(shopInfo);
+        ThriftUtil.setIfNotEmpty(shopLocation, shopInfo::setLocation);
+        ThriftUtil.setIfNotEmpty(shopInfo, questionaryData::setShopInfo);
 
         final BankAccount bankAccount = new BankAccount();
         RussianBankAccount russianBankAccount = new RussianBankAccount();
@@ -49,8 +50,8 @@ public class QuestionaryParamsConverter implements ThriftConverter<QuestionaryHo
         russianBankAccount.setBankPostAccount(value.getQuestionary().getBankPostAccount());
         russianBankAccount.setAccount(value.getQuestionary().getBankAccount());
         russianBankAccount.setBankBik(value.getQuestionary().getBankBik());
-        bankAccount.setRussianBankAccount(russianBankAccount);
-        questionaryData.setBankAccount(bankAccount);
+        ThriftUtil.setIfNotEmpty(russianBankAccount, bankAccount::setRussianBankAccount);
+        ThriftUtil.setIfNotEmpty(bankAccount, questionaryData::setBankAccount);
 
         if (value.getIndividualEntityQuestionaryHolder() != null) {
             Contractor contractor = new Contractor();

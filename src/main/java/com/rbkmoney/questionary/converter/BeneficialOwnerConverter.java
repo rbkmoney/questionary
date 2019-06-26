@@ -3,6 +3,7 @@ package com.rbkmoney.questionary.converter;
 import com.rbkmoney.geck.common.util.TypeUtil;
 import com.rbkmoney.questionary.*;
 import com.rbkmoney.questionary.domain.enums.IdentityDocumentType;
+import com.rbkmoney.questionary.util.ThriftUtil;
 
 public class BeneficialOwnerConverter implements ThriftConverter<com.rbkmoney.questionary.domain.tables.pojos.BeneficialOwner, BeneficialOwner> {
     @Override
@@ -24,7 +25,7 @@ public class BeneficialOwnerConverter implements ThriftConverter<com.rbkmoney.qu
         if (value.getResidenceApproveExpirationDate() != null) {
             residenceApprove.setExpirationDate(TypeUtil.temporalToString(value.getResidenceApproveExpirationDate()));
         }
-        beneficialOwner.setResidenceApprove(residenceApprove);
+        ThriftUtil.setIfNotEmpty(residenceApprove, beneficialOwner::setResidenceApprove);
 
         final MigrationCardInfo migrationCardInfo = new MigrationCardInfo();
         if (value.getMigrationCardExpirationDate() != null) {
@@ -34,7 +35,7 @@ public class BeneficialOwnerConverter implements ThriftConverter<com.rbkmoney.qu
             migrationCardInfo.setBeginningDate(TypeUtil.temporalToString(value.getMigrationCardBeginningDate()));
         }
         migrationCardInfo.setCardNumber(value.getMigrationCardNumber());
-        beneficialOwner.setMigrationCardInfo(migrationCardInfo);
+        ThriftUtil.setIfNotEmpty(migrationCardInfo, beneficialOwner::setMigrationCardInfo);
 
         final IdentityDocument identityDocument = new IdentityDocument();
         RussianDomesticPassport russianDomesticPassport = new RussianDomesticPassport();
@@ -45,8 +46,8 @@ public class BeneficialOwnerConverter implements ThriftConverter<com.rbkmoney.qu
         }
         russianDomesticPassport.setIssuer(value.getIdentityDocIssuer());
         russianDomesticPassport.setIssuerCode(value.getIdentityDocIssuerCode());
-        identityDocument.setRussianDomesticPassword(russianDomesticPassport);
-        beneficialOwner.setIdentityDocument(identityDocument);
+        ThriftUtil.setIfNotEmpty(russianDomesticPassport, identityDocument::setRussianDomesticPassword);
+        ThriftUtil.setIfNotEmpty(identityDocument, beneficialOwner::setIdentityDocument);
 
         final RussianPrivateEntity russianPrivateEntity = new RussianPrivateEntity();
         if (value.getPrivateEntityBirthDate() != null) {
@@ -60,13 +61,13 @@ public class BeneficialOwnerConverter implements ThriftConverter<com.rbkmoney.qu
         final ContactInfo contactInfo = new ContactInfo();
         contactInfo.setEmail(value.getPrivateEntityEmail());
         contactInfo.setPhoneNumber(value.getPrivateEntityPhoneNumber());
-        russianPrivateEntity.setContactInfo(contactInfo);
+        ThriftUtil.setIfNotEmpty(contactInfo, russianPrivateEntity::setContactInfo);
 
         final PersonAnthroponym personAnthroponym = new PersonAnthroponym();
         personAnthroponym.setFirstName(value.getPrivateEntityFirstName());
         personAnthroponym.setSecondName(value.getPrivateEntitySecondName());
         personAnthroponym.setMiddleName(value.getPrivateEntityMiddleName());
-        russianPrivateEntity.setFio(personAnthroponym);
+        ThriftUtil.setIfNotEmpty(personAnthroponym, russianPrivateEntity::setFio);
 
         beneficialOwner.setRussianPrivateEntity(russianPrivateEntity);
 

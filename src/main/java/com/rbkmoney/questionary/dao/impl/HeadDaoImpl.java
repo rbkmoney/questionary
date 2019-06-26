@@ -6,14 +6,12 @@ import com.rbkmoney.questionary.dao.HeadDao;
 import com.rbkmoney.questionary.domain.tables.pojos.Head;
 import com.rbkmoney.questionary.domain.tables.records.HeadRecord;
 import org.jooq.Query;
-import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.rbkmoney.questionary.domain.Tables.HEAD;
 
@@ -38,25 +36,13 @@ public class HeadDaoImpl extends AbstractGenericDao implements HeadDao {
 
     @Override
     public void saveAll(List<Head> headList) {
-        String sql = "INSERT INTO qs.head (questionary_id, first_name, second_name, middle_name, inn, position)" +
-                " VALUES (?, ?, ?, ?, ?, ?)";
-        getJdbcTemplate().batchUpdate(sql, new BatchPreparedStatementSetter() {
-            @Override
-            public void setValues(PreparedStatement ps, int i) throws SQLException {
-                Head founder = headList.get(i);
-                ps.setLong(1, founder.getQuestionaryId());
-                ps.setString(2, founder.getFirstName());
-                ps.setString(3, founder.getSecondName());
-                ps.setString(4, founder.getMiddleName());
-                ps.setString(5, founder.getInn());
-                ps.setString(6, founder.getPosition());
-            }
-
-            @Override
-            public int getBatchSize() {
-                return headList.size();
-            }
-        });
+        final List<Query> queries = headList.stream()
+                .map(head -> {
+                    final HeadRecord headRecord = getDslContext().newRecord(HEAD, head);
+                    return getDslContext().insertInto(HEAD).set(headRecord);
+                })
+                .collect(Collectors.toList());
+        batchExecute(queries);
     }
 
     @Override

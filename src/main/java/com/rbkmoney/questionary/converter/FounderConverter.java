@@ -6,6 +6,7 @@ import com.rbkmoney.questionary.PersonAnthroponym;
 import com.rbkmoney.questionary.RussianLegalEntityFounder;
 import com.rbkmoney.questionary.domain.enums.FounderType;
 import com.rbkmoney.questionary.domain.tables.pojos.Founder;
+import com.rbkmoney.questionary.util.ThriftUtil;
 
 public class FounderConverter implements ThriftConverter<Founder, com.rbkmoney.questionary.Founder> {
     @Override
@@ -25,7 +26,7 @@ public class FounderConverter implements ThriftConverter<Founder, com.rbkmoney.q
                 personAnthroponym.setSecondName(value.getSecondName());
                 personAnthroponym.setMiddleName(value.getMiddleName());
                 individualPerson.setInn(value.getInn());
-                individualPerson.setFio(personAnthroponym);
+                ThriftUtil.setIfNotEmpty(personAnthroponym, individualPerson::setFio);
 
                 return com.rbkmoney.questionary.Founder.individual_person_founder(individualPerson);
             case international_legal:

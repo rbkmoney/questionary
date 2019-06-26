@@ -6,14 +6,12 @@ import com.rbkmoney.questionary.dao.FinancialPositionDao;
 import com.rbkmoney.questionary.domain.tables.pojos.FinancialPosition;
 import com.rbkmoney.questionary.domain.tables.records.FinancialPositionRecord;
 import org.jooq.Query;
-import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.rbkmoney.questionary.domain.Tables.FINANCIAL_POSITION;
 
@@ -38,22 +36,13 @@ public class FinancialPositionDaoImpl extends AbstractGenericDao implements Fina
 
     @Override
     public void saveAll(List<FinancialPosition> financialPositionList) {
-        String sql = "INSERT INTO qs.financial_position (additional_info_id, type, description)" +
-                " VALUES (?, ?::qs.financial_pos_type, ?)";
-        getJdbcTemplate().batchUpdate(sql, new BatchPreparedStatementSetter() {
-            @Override
-            public void setValues(PreparedStatement ps, int i) throws SQLException {
-                FinancialPosition financialPosition = financialPositionList.get(i);
-                ps.setLong(1, financialPosition.getAdditionalInfoId());
-                ps.setObject(2, financialPosition.getType().name());
-                ps.setString(3, financialPosition.getDescription());
-            }
-
-            @Override
-            public int getBatchSize() {
-                return financialPositionList.size();
-            }
-        });
+        final List<Query> queries = financialPositionList.stream()
+                .map(financialPosition -> {
+                    FinancialPositionRecord financialPositionRecord = getDslContext().newRecord(FINANCIAL_POSITION, financialPosition);
+                    return getDslContext().insertInto(FINANCIAL_POSITION).set(financialPositionRecord);
+                })
+                .collect(Collectors.toList());
+        batchExecute(queries);
     }
 
     @Override

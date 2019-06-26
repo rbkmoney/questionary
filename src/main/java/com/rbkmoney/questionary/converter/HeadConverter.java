@@ -3,6 +3,7 @@ package com.rbkmoney.questionary.converter;
 import com.rbkmoney.questionary.IndividualPerson;
 import com.rbkmoney.questionary.PersonAnthroponym;
 import com.rbkmoney.questionary.domain.tables.pojos.Head;
+import com.rbkmoney.questionary.util.ThriftUtil;
 
 public class HeadConverter implements ThriftConverter<Head, com.rbkmoney.questionary.Head> {
     @Override
@@ -15,8 +16,8 @@ public class HeadConverter implements ThriftConverter<Head, com.rbkmoney.questio
         personAnthroponym.setFirstName(value.getFirstName());
         personAnthroponym.setSecondName(value.getSecondName());
         personAnthroponym.setMiddleName(value.getMiddleName());
-        individualPerson.setFio(personAnthroponym);
-        head.setIndividualPerson(individualPerson);
+        ThriftUtil.setIfNotEmpty(personAnthroponym, individualPerson::setFio);
+        ThriftUtil.setIfNotEmpty(individualPerson, head::setIndividualPerson);
 
         return head;
     }

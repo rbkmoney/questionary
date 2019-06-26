@@ -102,6 +102,7 @@ public class QuestionaryServiceImpl implements QuestionaryService {
             individualEntityQuestionaryHolderBuilder.individualEntityQuestionary(individualEntityQuestionary);
             individualEntityQuestionaryHolderBuilder.additionalInfoHolder(getAdditionalInfoById(questionary.getId()));
             individualEntityQuestionaryHolderBuilder.propertyInfoList(propertyInfoDao.getByQuestionaryId(questionary.getId()));
+            questionaryHolderBuilder.individualEntityQuestionaryHolder(individualEntityQuestionaryHolderBuilder.build());
         } else if (questionary.getType() == QuestionaryEntityType.legal) {
             final var legalEntityQuestionaryHolderBuilder = LegalEntityQuestionaryHolder.builder();
             final LegalEntityQuestionary legalEntityQuestionary = questionaryDao.getLegalEntityQuestionaryById(questionary.getId());
@@ -113,6 +114,7 @@ public class QuestionaryServiceImpl implements QuestionaryService {
             legalEntityQuestionaryHolderBuilder.additionalInfoHolder(getAdditionalInfoById(questionary.getId()));
             legalEntityQuestionaryHolderBuilder.beneficialOwnerList(beneficialOwnerDao.getByQuestionaryId(questionary.getId()));
             legalEntityQuestionaryHolderBuilder.founderList(founderDao.getByQuestionaryId(questionary.getId()));
+            questionaryHolderBuilder.legalEntityQuestionaryHolder(legalEntityQuestionaryHolderBuilder.build());
         }
 
         final QuestionaryParams questionaryParams = questionaryParamsConverter.convertToThrift(questionaryHolderBuilder.build());
@@ -160,10 +162,10 @@ public class QuestionaryServiceImpl implements QuestionaryService {
         }
 
         if (legalEntityQuestionaryHolder.getBeneficialOwnerList() != null) {
-            for (var beneficialOwner : legalEntityQuestionaryHolder.getBeneficialOwnerList()) {
-                beneficialOwner.setQuestionaryId(questionaryId);
-                beneficialOwnerDao.save(beneficialOwner);
-            }
+            final List<BeneficialOwner> beneficialOwnerList = legalEntityQuestionaryHolder.getBeneficialOwnerList().stream()
+                    .peek(beneficialOwner -> beneficialOwner.setQuestionaryId(questionaryId))
+                    .collect(Collectors.toList());
+            beneficialOwnerDao.saveAll(beneficialOwnerList);
         }
 
         // Save additional info
