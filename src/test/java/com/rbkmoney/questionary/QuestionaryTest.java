@@ -20,7 +20,7 @@ public class QuestionaryTest extends AbstractIntegrationTest {
     @Test
     public void ipQuestionaryTest() throws QuestionaryVersionConflict, QuestionaryNotFound {
         final QuestionaryParams questionaryParams = buildQuestionaryParams(EntityType.INDIVIDUAL);
-        final long questionaryVersion = questionaryService.saveQuestionary(questionaryParams, 1L);
+        final long questionaryVersion = questionaryService.saveQuestionary(questionaryParams, 2L);
         final Reference reference = new Reference();
         reference.setVersion(questionaryVersion);
         final Snapshot questionarySnapshot = questionaryService.getQuestionary("54376457", reference);
