@@ -57,14 +57,18 @@ public class AdditionalInfoConverter implements ThriftConverter<AdditionalInfoHo
             final List<BusinessInfo> businessInfoList = value.getBusinessInfoList().stream()
                     .map(businessInfoConverter::convertToThrift)
                     .collect(Collectors.toList());
-            additionalInfo.setBusinessInfo(businessInfoList);
+            if (!businessInfoList.isEmpty()) {
+                additionalInfo.setBusinessInfo(businessInfoList);
+            }
         }
 
         if (value.getFinancialPositionList() != null) {
             final List<FinancialPosition> financialPositionList = value.getFinancialPositionList().stream()
                     .map(financialPositionConverter::convertToThrift)
                     .collect(Collectors.toList());
-            additionalInfo.setFinancialPosition(financialPositionList);
+            if (!financialPositionList.isEmpty()) {
+                additionalInfo.setFinancialPosition(financialPositionList);
+            }
         }
 
         return additionalInfo;

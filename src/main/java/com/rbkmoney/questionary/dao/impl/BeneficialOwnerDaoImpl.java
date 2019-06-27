@@ -6,14 +6,12 @@ import com.rbkmoney.questionary.dao.BeneficialOwnerDao;
 import com.rbkmoney.questionary.domain.tables.pojos.BeneficialOwner;
 import com.rbkmoney.questionary.domain.tables.records.BeneficialOwnerRecord;
 import org.jooq.Query;
-import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.rbkmoney.questionary.domain.Tables.BENEFICIAL_OWNER;
 
@@ -34,6 +32,17 @@ public class BeneficialOwnerDaoImpl extends AbstractGenericDao implements Benefi
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
         execute(query, keyHolder);
         return keyHolder.getKey().longValue();
+    }
+
+    @Override
+    public void saveAll(List<BeneficialOwner> beneficialOwnerList) {
+        final List<Query> queries = beneficialOwnerList.stream()
+                .map(beneficialOwner -> {
+                    final BeneficialOwnerRecord beneficialOwnerRecord = getDslContext().newRecord(BENEFICIAL_OWNER, beneficialOwner);
+                    return getDslContext().insertInto(BENEFICIAL_OWNER).set(beneficialOwnerRecord);
+                })
+                .collect(Collectors.toList());
+        batchExecute(queries);
     }
 
     @Override

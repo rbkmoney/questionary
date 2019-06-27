@@ -1,6 +1,5 @@
 package com.rbkmoney.questionary.converter;
 
-import com.rbkmoney.geck.common.util.TBaseUtil;
 import com.rbkmoney.geck.common.util.TypeUtil;
 import com.rbkmoney.questionary.*;
 import com.rbkmoney.questionary.domain.enums.IdentityDocumentType;
@@ -8,6 +7,7 @@ import com.rbkmoney.questionary.domain.tables.pojos.IndividualEntityQuestionary;
 import com.rbkmoney.questionary.domain.tables.pojos.PropertyInfo;
 import com.rbkmoney.questionary.model.AdditionalInfoHolder;
 import com.rbkmoney.questionary.model.IndividualEntityQuestionaryHolder;
+import com.rbkmoney.questionary.util.ThriftUtil;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,13 +29,15 @@ public class IndividualEntityQuestionaryConverter implements ThriftConverter<Ind
             final List<String> propertyInfoList = value.getPropertyInfoList().stream()
                     .map(PropertyInfo::getDescription)
                     .collect(Collectors.toList());
+            if (!propertyInfoList.isEmpty()) {
             russianIndividualEntity.setPropertyInfo(propertyInfoList);
+            }
         }
 
         final Activity activity = new Activity();
         activity.setCode(value.getQuestionary().getOkvd());
         activity.setDescription(value.getQuestionary().getActivityType());
-        russianIndividualEntity.setPrincipalActivity(activity);
+        ThriftUtil.setIfNotEmpty(activity, russianIndividualEntity::setPrincipalActivity);
 
         final RegistrationInfo registrationInfo = new RegistrationInfo();
         IndividualRegistrationInfo individualRegistrationInfo = new IndividualRegistrationInfo();
@@ -44,14 +46,14 @@ public class IndividualEntityQuestionaryConverter implements ThriftConverter<Ind
         if (value.getQuestionary().getRegDate() != null) {
             individualRegistrationInfo.setRegistrationDate(TypeUtil.temporalToString(value.getQuestionary().getRegDate()));
         }
-        registrationInfo.setIndividualRegistrationInfo(individualRegistrationInfo);
-        russianIndividualEntity.setRegistrationInfo(registrationInfo);
+        ThriftUtil.setIfNotEmpty(individualRegistrationInfo, registrationInfo::setIndividualRegistrationInfo);
+        ThriftUtil.setIfNotEmpty(registrationInfo, russianIndividualEntity::setRegistrationInfo);
 
         final ResidencyInfo residencyInfo = new ResidencyInfo();
         IndividualResidencyInfo individualResidencyInfo = new IndividualResidencyInfo();
         individualResidencyInfo.setTaxResident(value.getQuestionary().getTaxResident());
-        residencyInfo.setIndividualResidencyInfo(individualResidencyInfo);
-        russianIndividualEntity.setResidencyInfo(residencyInfo);
+        ThriftUtil.setIfNotEmpty(individualResidencyInfo, residencyInfo::setIndividualResidencyInfo);
+        ThriftUtil.setIfNotEmpty(residencyInfo, russianIndividualEntity::setResidencyInfo);
 
         final IndividualPersonCategories individualPersonCategories = new IndividualPersonCategories();
         individualPersonCategories.setBeneficialOwner(value.getIndividualEntityQuestionary().getBeneficialOwner());
@@ -60,7 +62,7 @@ public class IndividualEntityQuestionaryConverter implements ThriftConverter<Ind
         individualPersonCategories.setForeignPublicPerson(value.getIndividualEntityQuestionary().getForeignPublicPerson());
         individualPersonCategories.setForeignRelativePerson(value.getIndividualEntityQuestionary().getForeignRelativePerson());
         individualPersonCategories.setBehalfOfForeign(value.getIndividualEntityQuestionary().getBehalfOfForeign());
-        russianIndividualEntity.setIndividualPersonCategories(individualPersonCategories);
+        ThriftUtil.setIfNotEmpty(individualPersonCategories, russianIndividualEntity::setIndividualPersonCategories);
 
         var russianPrivateEntity = new com.rbkmoney.questionary.RussianPrivateEntity();
         if (value.getIndividualEntityQuestionary().getPrivateEntityBirthDate() != null) {
@@ -74,14 +76,14 @@ public class IndividualEntityQuestionaryConverter implements ThriftConverter<Ind
         final ContactInfo contactInfo = new ContactInfo();
         contactInfo.setEmail(value.getIndividualEntityQuestionary().getPrivateEntityEmail());
         contactInfo.setPhoneNumber(value.getIndividualEntityQuestionary().getPrivateEntityPhoneNumber());
-        russianPrivateEntity.setContactInfo(contactInfo);
+        ThriftUtil.setIfNotEmpty(contactInfo, russianPrivateEntity::setContactInfo);
 
         final PersonAnthroponym personAnthroponym = new PersonAnthroponym();
         personAnthroponym.setFirstName(value.getIndividualEntityQuestionary().getPrivateEntityFirstName());
         personAnthroponym.setSecondName(value.getIndividualEntityQuestionary().getPrivateEntitySecondName());
         personAnthroponym.setMiddleName(value.getIndividualEntityQuestionary().getPrivateEntityMiddleName());
-        russianPrivateEntity.setFio(personAnthroponym);
-        russianIndividualEntity.setRussianPrivateEntity(russianPrivateEntity);
+        ThriftUtil.setIfNotEmpty(personAnthroponym, russianPrivateEntity::setFio);
+        ThriftUtil.setIfNotEmpty(russianPrivateEntity, russianIndividualEntity::setRussianPrivateEntity);
 
         final LicenseInfo licenseInfo = new LicenseInfo();
         licenseInfo.setIssuerName(value.getQuestionary().getLicenseIssuerName());
@@ -96,7 +98,7 @@ public class IndividualEntityQuestionaryConverter implements ThriftConverter<Ind
         if (value.getQuestionary().getLicenseIssueDate() != null) {
             licenseInfo.setIssueDate(TypeUtil.temporalToString(value.getQuestionary().getLicenseIssueDate()));
         }
-        russianIndividualEntity.setLicenseInfo(licenseInfo);
+        ThriftUtil.setIfNotEmpty(licenseInfo, russianIndividualEntity::setLicenseInfo);
 
         final IdentityDocument identityDocument = new IdentityDocument();
         RussianDomesticPassport russianDomesticPassport = new RussianDomesticPassport();
@@ -107,8 +109,8 @@ public class IndividualEntityQuestionaryConverter implements ThriftConverter<Ind
         }
         russianDomesticPassport.setIssuer(value.getIndividualEntityQuestionary().getIdentityDocIssuer());
         russianDomesticPassport.setIssuerCode(value.getIndividualEntityQuestionary().getIdentityDocIssuerCode());
-        identityDocument.setRussianDomesticPassword(russianDomesticPassport);
-        russianIndividualEntity.setIdentityDocument(identityDocument);
+        ThriftUtil.setIfNotEmpty(russianDomesticPassport, identityDocument::setRussianDomesticPassword);
+        ThriftUtil.setIfNotEmpty(identityDocument, russianIndividualEntity::setIdentityDocument);
 
         final MigrationCardInfo migrationCardInfo = new MigrationCardInfo();
         if (value.getIndividualEntityQuestionary().getMigrationCardExpirationDate() != null) {
@@ -118,7 +120,7 @@ public class IndividualEntityQuestionaryConverter implements ThriftConverter<Ind
             migrationCardInfo.setBeginningDate(TypeUtil.temporalToString(value.getIndividualEntityQuestionary().getMigrationCardBeginningDate()));
         }
         migrationCardInfo.setCardNumber(value.getIndividualEntityQuestionary().getMigrationCardNumber());
-        russianIndividualEntity.setMigrationCardInfo(migrationCardInfo);
+        ThriftUtil.setIfNotEmpty(migrationCardInfo, russianIndividualEntity::setMigrationCardInfo);
 
         final ResidenceApprove residenceApprove = new ResidenceApprove();
         residenceApprove.setName(value.getIndividualEntityQuestionary().getResidenceApproveName());
@@ -130,10 +132,11 @@ public class IndividualEntityQuestionaryConverter implements ThriftConverter<Ind
         if (value.getIndividualEntityQuestionary().getResidenceApproveExpirationDate() != null) {
             residenceApprove.setExpirationDate(TypeUtil.temporalToString(value.getIndividualEntityQuestionary().getResidenceApproveExpirationDate()));
         }
-        russianIndividualEntity.setResidenceApprove(residenceApprove);
+        ThriftUtil.setIfNotEmpty(residenceApprove, russianIndividualEntity::setResidenceApprove);
 
         if (value.getAdditionalInfoHolder() != null) {
-            russianIndividualEntity.setAdditionalInfo(additionalInfoConverter.convertToThrift(value.getAdditionalInfoHolder()));
+            final AdditionalInfo additionalInfo = additionalInfoConverter.convertToThrift(value.getAdditionalInfoHolder());
+            ThriftUtil.setIfNotEmpty(additionalInfo, russianIndividualEntity::setAdditionalInfo);
         }
 
         return russianIndividualEntity;

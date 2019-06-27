@@ -6,14 +6,12 @@ import com.rbkmoney.questionary.dao.BusinessInfoDao;
 import com.rbkmoney.questionary.domain.tables.pojos.BusinessInfo;
 import com.rbkmoney.questionary.domain.tables.records.BusinessInfoRecord;
 import org.jooq.Query;
-import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.rbkmoney.questionary.domain.Tables.BUSINESS_INFO;
 
@@ -38,22 +36,13 @@ public class BusinessInfoDaoImpl extends AbstractGenericDao implements BusinessI
 
     @Override
     public void saveAll(List<BusinessInfo> businessInfoList) {
-        String sql = "INSERT INTO qs.business_info (additional_info_id, type, description)" +
-                " VALUES (?, ?::qs.business_info_type, ?)";
-        getJdbcTemplate().batchUpdate(sql, new BatchPreparedStatementSetter() {
-            @Override
-            public void setValues(PreparedStatement ps, int i) throws SQLException {
-                BusinessInfo businessInfo = businessInfoList.get(i);
-                ps.setLong(1, businessInfo.getAdditionalInfoId());
-                ps.setObject(2, businessInfo.getType().name());
-                ps.setString(3, businessInfo.getDescription());
-            }
-
-            @Override
-            public int getBatchSize() {
-                return businessInfoList.size();
-            }
-        });
+        final List<Query> queries = businessInfoList.stream()
+                .map(businessInfo -> {
+                    BusinessInfoRecord businessInfoRecord = getDslContext().newRecord(BUSINESS_INFO, businessInfo);
+                    return getDslContext().insertInto(BUSINESS_INFO).set(businessInfoRecord);
+                })
+                .collect(Collectors.toList());
+        batchExecute(queries);
     }
 
     @Override
