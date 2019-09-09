@@ -18,9 +18,15 @@ public class QuestionaryHandler implements QuestionaryManagerSrv.Iface {
     public long save(QuestionaryParams questionaryParams, long version)
             throws QuestionaryNotFound, QuestionaryNotValidException, QuestionaryVersionConflict, TException {
         log.info("Save questionary: id={}, version={}", questionaryParams.getId(), version);
-        final long latestVer = questionaryService.saveQuestionary(questionaryParams, version);
-        log.info("Questionary successfully saved: id={}", questionaryParams.getId());
-        return latestVer;
+        try {
+            final long latestVer = questionaryService.saveQuestionary(questionaryParams, version);
+            log.info("Questionary successfully saved: id={}", questionaryParams.getId());
+
+            return latestVer;
+        } catch (Exception ex) {
+            log.error("Save questionary failed", ex);
+            throw new TException(ex);
+        }
     }
 
     @Override

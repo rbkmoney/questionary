@@ -21,19 +21,25 @@ public class LegalEntityQuestionaryMapper implements RowMapper<LegalEntity> {
 
     @Override
     public LegalEntity mapRow(ResultSet rs, int rowNum) throws SQLException {
-        LegalRegistrationInfo legalRegistrationInfo = new LegalRegistrationInfo();
+        final RussianLegalEntity russianLegalEntity = new RussianLegalEntity();
+        russianLegalEntity.setName(rs.getString(LEGAL_ENTITY_QUESTIONARY.NAME.getName()));
+        russianLegalEntity.setForeignName(rs.getString(LEGAL_ENTITY_QUESTIONARY.FOREIGN_NAME.getName()));
+        russianLegalEntity.setLegalForm(rs.getString(LEGAL_ENTITY_QUESTIONARY.LEGAL_FORM.getName()));
+        russianLegalEntity.setInn(rs.getString(QUESTIONARY.INN.getName()));
+        russianLegalEntity.setAdditionalSpace(rs.getString(LEGAL_ENTITY_QUESTIONARY.ADDITIONAL_SPACE.getName()));
+        russianLegalEntity.setOkatoCode(rs.getString(LEGAL_ENTITY_QUESTIONARY.OKATO_CODE.getName()));
+        russianLegalEntity.setOkpoCode(rs.getString(LEGAL_ENTITY_QUESTIONARY.OKPO_CODE.getName()));
+        russianLegalEntity.setPostalAddress(rs.getString(LEGAL_ENTITY_QUESTIONARY.POSTAL_ADDRESS.getName()));
+
+        final LegalRegistrationInfo legalRegistrationInfo = new LegalRegistrationInfo();
         legalRegistrationInfo.setRegistrationAddress(rs.getString(LEGAL_ENTITY_QUESTIONARY.REG_ADDRESS.getName()));
         legalRegistrationInfo.setRegistrationDate(rs.getString(QUESTIONARY.REG_DATE.getName()));
         legalRegistrationInfo.setRegistrationPlace(rs.getString(QUESTIONARY.REG_PLACE.getName()));
         legalRegistrationInfo.setOgrn(rs.getString(LEGAL_ENTITY_QUESTIONARY.OGRN.getName()));
         legalRegistrationInfo.setActualAddress(rs.getString(LEGAL_ENTITY_QUESTIONARY.REG_ACTUAL_ADDRESS.getName()));
+        russianLegalEntity.setRegistrationInfo(RegistrationInfo.legal_registration_info(legalRegistrationInfo));
 
-        LegalResidencyInfo legalResidencyInfo = new LegalResidencyInfo();
-        legalResidencyInfo.setTaxResident(rs.getBoolean(QUESTIONARY.TAX_RESIDENT.getName()));
-        legalResidencyInfo.setFatca(rs.getBoolean(LEGAL_ENTITY_QUESTIONARY.FATCA.getName()));
-        legalResidencyInfo.setOwnerResident(rs.getBoolean(LEGAL_ENTITY_QUESTIONARY.OWNER_RESIDENT.getName()));
-
-        LicenseInfo licenseInfo = new LicenseInfo();
+        final LicenseInfo licenseInfo = new LicenseInfo();
         final LocalDateTime licenseIssueDate = rs.getObject(QUESTIONARY.LICENSE_ISSUE_DATE.getName(), LocalDateTime.class);
         if (licenseIssueDate != null) {
             licenseInfo.setIssueDate(TypeUtil.temporalToString(licenseIssueDate));
@@ -49,20 +55,13 @@ public class LegalEntityQuestionaryMapper implements RowMapper<LegalEntity> {
         licenseInfo.setLicensedActivity(rs.getString(QUESTIONARY.LICENSE_LICENSED_ACTIVITY.getName()));
         licenseInfo.setOfficialNum(rs.getString(QUESTIONARY.LICENSE_OFFICIAL_NUM.getName()));
         licenseInfo.setIssuerName(rs.getString(QUESTIONARY.LICENSE_ISSUER_NAME.getName()));
+        russianLegalEntity.setLicenseInfo(licenseInfo);
 
-        RussianLegalEntity russianLegalEntity = new RussianLegalEntity();
-        russianLegalEntity.setName(rs.getString(LEGAL_ENTITY_QUESTIONARY.NAME.getName()));
-        russianLegalEntity.setForeignName(rs.getString(LEGAL_ENTITY_QUESTIONARY.FOREIGN_NAME.getName()));
-        russianLegalEntity.setLegalForm(rs.getString(LEGAL_ENTITY_QUESTIONARY.LEGAL_FORM.getName()));
-        russianLegalEntity.setInn(rs.getString(QUESTIONARY.INN.getName()));
-        russianLegalEntity.setRegistrationInfo(RegistrationInfo.legal_registration_info(legalRegistrationInfo));
-        russianLegalEntity.setAdditionalSpace(rs.getString(LEGAL_ENTITY_QUESTIONARY.ADDITIONAL_SPACE.getName()));
-        russianLegalEntity.setOkatoCode(rs.getString(LEGAL_ENTITY_QUESTIONARY.OKATO_CODE.getName()));
-        russianLegalEntity.setOkpoCode(rs.getString(LEGAL_ENTITY_QUESTIONARY.OKPO_CODE.getName()));
-        russianLegalEntity.setPostalAddress(rs.getString(LEGAL_ENTITY_QUESTIONARY.POSTAL_ADDRESS.getName()));
-        russianLegalEntity.setLicenseInfo(licenseInfo);
+        final LegalResidencyInfo legalResidencyInfo = new LegalResidencyInfo();
+        legalResidencyInfo.setTaxResident(rs.getBoolean(LEGAL_ENTITY_QUESTIONARY.TAX_RESIDENT.getName()));
+        legalResidencyInfo.setFatca(rs.getBoolean(LEGAL_ENTITY_QUESTIONARY.FATCA.getName()));
+        legalResidencyInfo.setOwnerResident(rs.getBoolean(LEGAL_ENTITY_QUESTIONARY.OWNER_RESIDENT.getName()));
         russianLegalEntity.setResidencyInfo(ResidencyInfo.legal_residency_info(legalResidencyInfo));
-        russianLegalEntity.setLicenseInfo(licenseInfo);
 
         final FoundersInfo foundersInfo = new FoundersInfo();
         final Head legalOwner = new Head();

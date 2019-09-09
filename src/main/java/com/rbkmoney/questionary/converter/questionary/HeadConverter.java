@@ -1,13 +1,20 @@
-package com.rbkmoney.questionary.converter;
+package com.rbkmoney.questionary.converter.questionary;
 
 import com.rbkmoney.questionary.IndividualPerson;
 import com.rbkmoney.questionary.PersonAnthroponym;
+import com.rbkmoney.questionary.converter.JooqConverter;
+import com.rbkmoney.questionary.converter.JooqConverterContext;
+import com.rbkmoney.questionary.converter.ThriftConverter;
+import com.rbkmoney.questionary.converter.ThriftConverterContext;
 import com.rbkmoney.questionary.domain.tables.pojos.Head;
 import com.rbkmoney.questionary.util.ThriftUtil;
+import org.springframework.stereotype.Component;
 
-public class HeadConverter implements ThriftConverter<Head, com.rbkmoney.questionary.Head> {
+@Component
+public class HeadConverter implements ThriftConverter<com.rbkmoney.questionary.Head, Head>, JooqConverter<Head, com.rbkmoney.questionary.Head> {
+
     @Override
-    public com.rbkmoney.questionary.Head convertToThrift(Head value) {
+    public com.rbkmoney.questionary.Head toThrift(Head value, ThriftConverterContext ctx) {
         com.rbkmoney.questionary.Head head = new com.rbkmoney.questionary.Head();
         head.setPosition(value.getPosition());
         IndividualPerson individualPerson = new IndividualPerson();
@@ -23,7 +30,7 @@ public class HeadConverter implements ThriftConverter<Head, com.rbkmoney.questio
     }
 
     @Override
-    public Head convertFromThrift(com.rbkmoney.questionary.Head value) {
+    public Head toJooq(com.rbkmoney.questionary.Head value, JooqConverterContext ctx) {
         Head head = new Head();
         if (value.isSetIndividualPerson()) {
             head.setInn(value.getIndividualPerson().getInn());

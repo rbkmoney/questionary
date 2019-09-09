@@ -1,25 +1,27 @@
-package com.rbkmoney.questionary.converter;
+package com.rbkmoney.questionary.converter.questionary;
 
 
 import com.rbkmoney.questionary.*;
+import com.rbkmoney.questionary.converter.JooqConverter;
+import com.rbkmoney.questionary.converter.JooqConverterContext;
+import com.rbkmoney.questionary.converter.ThriftConverter;
+import com.rbkmoney.questionary.converter.ThriftConverterContext;
+import com.rbkmoney.questionary.domain.enums.AccountantInfoType;
 import com.rbkmoney.questionary.domain.enums.RelationProcess;
+import com.rbkmoney.questionary.domain.enums.WithoutChiefAccountantType;
 import com.rbkmoney.questionary.model.AdditionalInfoHolder;
+import com.rbkmoney.questionary.util.ThriftUtil;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class AdditionalInfoConverter implements ThriftConverter<AdditionalInfoHolder, AdditionalInfo> {
-
-    private final FinancialPositionConverter financialPositionConverter;
-    private final BusinessInfoConverter businessInfoConverter;
-
-    public AdditionalInfoConverter() {
-        this.financialPositionConverter = new FinancialPositionConverter();
-        this.businessInfoConverter = new BusinessInfoConverter();
-    }
+@Component
+public class AdditionalInfoConverter implements ThriftConverter<AdditionalInfo, AdditionalInfoHolder>,
+        JooqConverter<AdditionalInfoHolder, AdditionalInfo> {
 
     @Override
-    public AdditionalInfo convertToThrift(AdditionalInfoHolder value) {
+    public AdditionalInfo toThrift(AdditionalInfoHolder value, ThriftConverterContext ctx) {
         AdditionalInfo additionalInfo = new AdditionalInfo();
         if (value.getAdditionalInfo() != null) {
             if (value.getAdditionalInfo().getBusinessReputation() != null) {
@@ -43,19 +45,18 @@ public class AdditionalInfoConverter implements ThriftConverter<AdditionalInfoHo
                 additionalInfo.setMonthOperationCount(monthOperationCount);
             }
             additionalInfo.setMainCounterparties(value.getAdditionalInfo().getCounterparties());
-            additionalInfo.setStorageFacilities(value.getAdditionalInfo().getStorageFacilities());
             additionalInfo.setRelationshipWithNKO(value.getAdditionalInfo().getRelationshipWithNko());
             additionalInfo.setNKORelationTarget(value.getAdditionalInfo().getNkoRelationTarget());
-            additionalInfo.setAccountingOrg(value.getAdditionalInfo().getAccountingOrg());
-            additionalInfo.setAccounting(value.getAdditionalInfo().getAccounting());
             additionalInfo.setStaffCount(value.getAdditionalInfo().getStaffCount());
-            additionalInfo.setHasAccountant(value.getAdditionalInfo().getHasAccountant());
             additionalInfo.setBenefitThirdParties(value.getAdditionalInfo().getBenefitThirdParties());
+
+            AccountantInfo accountantInfo = ctx.convert(value.getAdditionalInfo(), AccountantInfo.class);
+            ThriftUtil.setIfNotEmpty(accountantInfo, additionalInfo::setAccountantInfo);
         }
 
         if (value.getBusinessInfoList() != null) {
             final List<BusinessInfo> businessInfoList = value.getBusinessInfoList().stream()
-                    .map(businessInfoConverter::convertToThrift)
+                    .map(businessInfo -> ctx.convert(businessInfo, BusinessInfo.class))
                     .collect(Collectors.toList());
             if (!businessInfoList.isEmpty()) {
                 additionalInfo.setBusinessInfo(businessInfoList);
@@ -63,8 +64,8 @@ public class AdditionalInfoConverter implements ThriftConverter<AdditionalInfoHo
         }
 
         if (value.getFinancialPositionList() != null) {
-            final List<FinancialPosition> financialPositionList = value.getFinancialPositionList().stream()
-                    .map(financialPositionConverter::convertToThrift)
+            List<FinancialPosition> financialPositionList = value.getFinancialPositionList().stream()
+                    .map(financialPosition -> ctx.convert(financialPosition, FinancialPosition.class))
                     .collect(Collectors.toList());
             if (!financialPositionList.isEmpty()) {
                 additionalInfo.setFinancialPosition(financialPositionList);
@@ -75,7 +76,7 @@ public class AdditionalInfoConverter implements ThriftConverter<AdditionalInfoHo
     }
 
     @Override
-    public AdditionalInfoHolder convertFromThrift(AdditionalInfo value) {
+    public AdditionalInfoHolder toJooq(AdditionalInfo value, JooqConverterContext ctx) {
         com.rbkmoney.questionary.domain.tables.pojos.AdditionalInfo additionalInfo =
                 new com.rbkmoney.questionary.domain.tables.pojos.AdditionalInfo();
         if (value.isSetBusinessReputation()) {
@@ -97,28 +98,28 @@ public class AdditionalInfoConverter implements ThriftConverter<AdditionalInfoHo
                     Enum.valueOf(com.rbkmoney.questionary.domain.enums.MonthOperationSum.class, value.getMonthOperationSum().name());
             additionalInfo.setMonthOperationSum(monthOperationSum);
         }
-        additionalInfo.setAccounting(value.getAccounting());
-        additionalInfo.setAccountingOrg(value.getAccountingOrg());
         additionalInfo.setBenefitThirdParties(value.isBenefitThirdParties());
         additionalInfo.setStaffCount(value.getStaffCount());
-        additionalInfo.setHasAccountant(value.isHasAccountant());
         additionalInfo.setNkoRelationTarget(value.getNKORelationTarget());
         additionalInfo.setRelationshipWithNko(value.getRelationshipWithNKO());
-        additionalInfo.setStorageFacilities(value.isStorageFacilities());
         additionalInfo.setCounterparties(value.getMainCounterparties());
 
         List<com.rbkmoney.questionary.domain.tables.pojos.BusinessInfo> businessInfoList = null;
         if (value.isSetBusinessInfo()) {
             businessInfoList = value.getBusinessInfo().stream()
-                    .map(businessInfoConverter::convertFromThrift)
+                    .map(businessInfo -> ctx.convert(businessInfo, com.rbkmoney.questionary.domain.tables.pojos.BusinessInfo.class))
                     .collect(Collectors.toList());
         }
 
         List<com.rbkmoney.questionary.domain.tables.pojos.FinancialPosition> financialPositionList = null;
         if (value.isSetFinancialPosition()) {
             financialPositionList = value.getFinancialPosition().stream()
-                    .map(financialPositionConverter::convertFromThrift)
+                    .map(financialPosition -> ctx.convert(financialPosition, com.rbkmoney.questionary.domain.tables.pojos.FinancialPosition.class))
                     .collect(Collectors.toList());
+        }
+
+        if (value.getAccountantInfo() != null) {
+            ctx.fill(additionalInfo, value.getAccountantInfo());
         }
 
         return AdditionalInfoHolder.builder()

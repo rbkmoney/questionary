@@ -1,14 +1,21 @@
-package com.rbkmoney.questionary.converter;
+package com.rbkmoney.questionary.converter.questionary;
 
 import com.rbkmoney.geck.common.util.TBaseUtil;
 import com.rbkmoney.questionary.*;
+import com.rbkmoney.questionary.converter.JooqConverter;
+import com.rbkmoney.questionary.converter.JooqConverterContext;
+import com.rbkmoney.questionary.converter.ThriftConverter;
+import com.rbkmoney.questionary.converter.ThriftConverterContext;
 import com.rbkmoney.questionary.domain.enums.BusinessInfoType;
 import com.rbkmoney.questionary.domain.tables.pojos.BusinessInfo;
+import org.springframework.stereotype.Component;
 
-public class BusinessInfoConverter implements ThriftConverter<BusinessInfo, com.rbkmoney.questionary.BusinessInfo> {
+@Component
+public class BusinessInfoConverter implements ThriftConverter<com.rbkmoney.questionary.BusinessInfo, BusinessInfo>,
+        JooqConverter<BusinessInfo, com.rbkmoney.questionary.BusinessInfo> {
 
     @Override
-    public com.rbkmoney.questionary.BusinessInfo convertToThrift(BusinessInfo value) {
+    public com.rbkmoney.questionary.BusinessInfo toThrift(BusinessInfo value, ThriftConverterContext ctx) {
         com.rbkmoney.questionary.BusinessInfo businessInfo = new com.rbkmoney.questionary.BusinessInfo();
         switch (value.getType()) {
             case building_business:
@@ -42,7 +49,7 @@ public class BusinessInfoConverter implements ThriftConverter<BusinessInfo, com.
     }
 
     @Override
-    public BusinessInfo convertFromThrift(com.rbkmoney.questionary.BusinessInfo value) {
+    public BusinessInfo toJooq(com.rbkmoney.questionary.BusinessInfo value, JooqConverterContext ctx) {
         BusinessInfo businessInfo = new BusinessInfo();
         BusinessInfoType businessInfoType = TBaseUtil.unionFieldToEnum(value, BusinessInfoType.class);
         businessInfo.setType(businessInfoType);

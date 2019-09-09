@@ -1,35 +1,27 @@
-package com.rbkmoney.questionary.converter;
+package com.rbkmoney.questionary.converter.questionary;
 
 import com.rbkmoney.geck.common.util.TypeUtil;
 import com.rbkmoney.questionary.*;
+import com.rbkmoney.questionary.converter.JooqConverter;
+import com.rbkmoney.questionary.converter.JooqConverterContext;
+import com.rbkmoney.questionary.converter.ThriftConverter;
+import com.rbkmoney.questionary.converter.ThriftConverterContext;
 import com.rbkmoney.questionary.domain.tables.pojos.LegalEntityQuestionary;
 import com.rbkmoney.questionary.domain.tables.pojos.LegalOwner;
-import com.rbkmoney.questionary.domain.tables.pojos.PropertyInfo;
 import com.rbkmoney.questionary.model.AdditionalInfoHolder;
 import com.rbkmoney.questionary.model.LegalEntityQuestionaryHolder;
 import com.rbkmoney.questionary.util.ThriftUtil;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class LegalEntityQuestionaryConverter implements ThriftConverter<LegalEntityQuestionaryHolder, RussianLegalEntity> {
-
-    private final LegalOwnerConverter legalOwnerConverter;
-    private final FounderConverter founderConverter;
-    private final HeadConverter headConverter;
-    private final AdditionalInfoConverter additionalInfoConverter;
-    private final BeneficialOwnerConverter beneficialOwnerConverter;
-
-    LegalEntityQuestionaryConverter() {
-        this.legalOwnerConverter = new LegalOwnerConverter();
-        this.founderConverter = new FounderConverter();
-        this.headConverter = new HeadConverter();
-        this.additionalInfoConverter = new AdditionalInfoConverter();
-        this.beneficialOwnerConverter = new BeneficialOwnerConverter();
-    }
+@Component
+public class LegalEntityQuestionaryConverter implements ThriftConverter<RussianLegalEntity, LegalEntityQuestionaryHolder>,
+        JooqConverter<LegalEntityQuestionaryHolder, RussianLegalEntity> {
 
     @Override
-    public RussianLegalEntity convertToThrift(LegalEntityQuestionaryHolder value) {
+    public RussianLegalEntity toThrift(LegalEntityQuestionaryHolder value, ThriftConverterContext ctx) {
         final RussianLegalEntity russianLegalEntity = new RussianLegalEntity();
         russianLegalEntity.setName(value.getLegalEntityQuestionary().getName());
         russianLegalEntity.setForeignName(value.getLegalEntityQuestionary().getForeignName());
@@ -37,7 +29,7 @@ public class LegalEntityQuestionaryConverter implements ThriftConverter<LegalEnt
         russianLegalEntity.setInn(value.getQuestionary().getInn());
 
         final RegistrationInfo registrationInfo = new RegistrationInfo();
-        LegalRegistrationInfo legalRegistrationInfo = new LegalRegistrationInfo();
+        final LegalRegistrationInfo legalRegistrationInfo = new LegalRegistrationInfo();
         legalRegistrationInfo.setOgrn(value.getLegalEntityQuestionary().getOgrn());
         legalRegistrationInfo.setRegistrationPlace(value.getQuestionary().getRegPlace());
         if (value.getQuestionary().getRegDate() != null) {
@@ -45,33 +37,26 @@ public class LegalEntityQuestionaryConverter implements ThriftConverter<LegalEnt
         }
         legalRegistrationInfo.setActualAddress(value.getLegalEntityQuestionary().getRegActualAddress());
         legalRegistrationInfo.setRegistrationAddress(value.getLegalEntityQuestionary().getRegAddress());
+        registrationInfo.setLegalRegistrationInfo(legalRegistrationInfo);
         ThriftUtil.setIfNotEmpty(legalRegistrationInfo, registrationInfo::setLegalRegistrationInfo);
         ThriftUtil.setIfNotEmpty(registrationInfo, russianLegalEntity::setRegistrationInfo);
 
         russianLegalEntity.setAdditionalSpace(value.getLegalEntityQuestionary().getAdditionalSpace());
 
-        final Activity activity = new Activity();
-        activity.setCode(value.getQuestionary().getOkvd());
-        activity.setDescription(value.getQuestionary().getActivityType());
+        Activity activity = ctx.convert(value.getQuestionary(), Activity.class);
         ThriftUtil.setIfNotEmpty(activity, russianLegalEntity::setPrincipalActivity);
-
-        if (value.getPropertyInfoList() != null) {
-            final List<String> propertyList = value.getPropertyInfoList().stream()
-                    .map(PropertyInfo::getDescription)
-                    .collect(Collectors.toList());
-            if (!propertyList.isEmpty()) {
-                russianLegalEntity.setPropertyInfo(propertyList);
-            }
-        }
 
         russianLegalEntity.setOkatoCode(value.getLegalEntityQuestionary().getOkatoCode());
         russianLegalEntity.setOkpoCode(value.getLegalEntityQuestionary().getOkpoCode());
         russianLegalEntity.setPostalAddress(value.getLegalEntityQuestionary().getPostalAddress());
 
+        PropertyInfoDocumentType propertyInfoDocumentType = ctx.convert(value.getQuestionary(), PropertyInfoDocumentType.class);
+        russianLegalEntity.setPropertyInfoDocumentType(propertyInfoDocumentType);
+
         final FoundersInfo foundersInfo = new FoundersInfo();
         if (value.getFounderList() != null) {
             final List<com.rbkmoney.questionary.Founder> founderList = value.getFounderList().stream()
-                    .map(founderConverter::convertToThrift)
+                    .map(founder -> ctx.convert(founder, Founder.class))
                     .collect(Collectors.toList());
             if (!founderList.isEmpty()) {
                 foundersInfo.setFounders(founderList);
@@ -79,7 +64,7 @@ public class LegalEntityQuestionaryConverter implements ThriftConverter<LegalEnt
         }
         if (value.getHeadList() != null) {
             final List<com.rbkmoney.questionary.Head> headList = value.getHeadList().stream()
-                    .map(headConverter::convertToThrift)
+                    .map(head -> ctx.convert(head, Head.class))
                     .collect(Collectors.toList());
             if (!headList.isEmpty()) {
                 foundersInfo.setHeads(headList);
@@ -87,7 +72,7 @@ public class LegalEntityQuestionaryConverter implements ThriftConverter<LegalEnt
         }
 
         if (value.getLegalOwner() != null) {
-            final LegalOwnerInfo legalOwnerInfo = legalOwnerConverter.convertToThrift(value.getLegalOwner());
+            final LegalOwnerInfo legalOwnerInfo = ctx.convert(value.getLegalOwner(), LegalOwnerInfo.class);
             ThriftUtil.setIfNotEmpty(legalOwnerInfo, russianLegalEntity::setLegalOwnerInfo);
         }
 
@@ -121,7 +106,7 @@ public class LegalEntityQuestionaryConverter implements ThriftConverter<LegalEnt
 
         final ResidencyInfo residencyInfo = new ResidencyInfo();
         LegalResidencyInfo legalResidencyInfo = new LegalResidencyInfo();
-        legalResidencyInfo.setTaxResident(value.getQuestionary().getTaxResident());
+        legalResidencyInfo.setTaxResident(value.getLegalEntityQuestionary().getTaxResident());
         legalResidencyInfo.setOwnerResident(value.getLegalEntityQuestionary().getOwnerResident());
         legalResidencyInfo.setFatca(value.getLegalEntityQuestionary().getFatca());
         ThriftUtil.setIfNotEmpty(legalResidencyInfo, residencyInfo::setLegalResidencyInfo);
@@ -129,7 +114,7 @@ public class LegalEntityQuestionaryConverter implements ThriftConverter<LegalEnt
 
         if (value.getBeneficialOwnerList() != null) {
             final List<BeneficialOwner> beneficialOwnerList = value.getBeneficialOwnerList().stream()
-                    .map(beneficialOwnerConverter::convertToThrift)
+                    .map(beneficialOwner -> ctx.convert(beneficialOwner, BeneficialOwner.class))
                     .collect(Collectors.toList());
             if (!beneficialOwnerList.isEmpty()) {
                 russianLegalEntity.setBeneficialOwners(beneficialOwnerList);
@@ -137,7 +122,7 @@ public class LegalEntityQuestionaryConverter implements ThriftConverter<LegalEnt
         }
 
         if (value.getAdditionalInfoHolder() != null) {
-            final AdditionalInfo additionalInfo = additionalInfoConverter.convertToThrift(value.getAdditionalInfoHolder());
+            final AdditionalInfo additionalInfo = ctx.convert(value.getAdditionalInfoHolder(), AdditionalInfo.class);
             ThriftUtil.setIfNotEmpty(additionalInfo, russianLegalEntity::setAdditionalInfo);
         }
 
@@ -145,7 +130,7 @@ public class LegalEntityQuestionaryConverter implements ThriftConverter<LegalEnt
     }
 
     @Override
-    public LegalEntityQuestionaryHolder convertFromThrift(RussianLegalEntity value) {
+    public LegalEntityQuestionaryHolder toJooq(RussianLegalEntity value, JooqConverterContext ctx) {
         final LegalEntityQuestionary legalEntityQuestionary = new LegalEntityQuestionary();
         legalEntityQuestionary.setName(value.getName());
         legalEntityQuestionary.setAdditionalSpace(value.getAdditionalSpace());
@@ -153,6 +138,7 @@ public class LegalEntityQuestionaryConverter implements ThriftConverter<LegalEnt
         if (value.isSetResidencyInfo() && value.getResidencyInfo().isSetLegalResidencyInfo()) {
             legalEntityQuestionary.setOwnerResident(value.getResidencyInfo().getLegalResidencyInfo().isOwnerResident());
             legalEntityQuestionary.setFatca(value.getResidencyInfo().getLegalResidencyInfo().isFatca());
+            legalEntityQuestionary.setTaxResident(value.getResidencyInfo().getLegalResidencyInfo().isTaxResident());
         }
         if (value.isSetFoundersInfo() && value.getFoundersInfo().isSetLegalOwner()) {
             legalEntityQuestionary.setFounderOwnerPosition(value.getFoundersInfo().getLegalOwner().getPosition());
@@ -173,20 +159,20 @@ public class LegalEntityQuestionaryConverter implements ThriftConverter<LegalEnt
 
         LegalOwner legalOwnerInfo = null;
         if (value.isSetLegalOwnerInfo()) {
-            legalOwnerInfo = legalOwnerConverter.convertFromThrift(value.getLegalOwnerInfo());
+            legalOwnerInfo = ctx.convert(value.getLegalOwnerInfo(), LegalOwner.class);
         }
 
         List<com.rbkmoney.questionary.domain.tables.pojos.Founder> founderList = null;
         if (value.isSetFoundersInfo() && value.getFoundersInfo().isSetFounders()) {
             founderList = value.getFoundersInfo().getFounders().stream()
-                    .map(founderConverter::convertFromThrift)
+                    .map(founder -> ctx.convert(founder, com.rbkmoney.questionary.domain.tables.pojos.Founder.class))
                     .collect(Collectors.toList());
         }
 
         List<com.rbkmoney.questionary.domain.tables.pojos.Head> headList = null;
         if (value.isSetFoundersInfo() && value.getFoundersInfo().isSetHeads()) {
             headList = value.getFoundersInfo().getHeads().stream()
-                    .map(headConverter::convertFromThrift)
+                    .map(head -> ctx.convert(head, com.rbkmoney.questionary.domain.tables.pojos.Head.class))
                     .collect(Collectors.toList());
         }
 
@@ -206,27 +192,16 @@ public class LegalEntityQuestionaryConverter implements ThriftConverter<LegalEnt
             }
         }
 
-        List<PropertyInfo> propertyInfoList = null;
-        if (value.isSetPropertyInfo()) {
-            propertyInfoList = value.getPropertyInfo().stream()
-                    .map(s -> {
-                        PropertyInfo propertyInfo = new PropertyInfo();
-                        propertyInfo.setDescription(s);
-                        return propertyInfo;
-                    })
-                    .collect(Collectors.toList());
-        }
-
         List<com.rbkmoney.questionary.domain.tables.pojos.BeneficialOwner> beneficialOwnerHolderList = null;
         if (value.isSetBeneficialOwners()) {
             beneficialOwnerHolderList = value.getBeneficialOwners().stream()
-                    .map(beneficialOwnerConverter::convertFromThrift)
+                    .map(beneficialOwner -> ctx.convert(beneficialOwner, com.rbkmoney.questionary.domain.tables.pojos.BeneficialOwner.class))
                     .collect(Collectors.toList());
         }
 
         AdditionalInfoHolder additionalInfoHolder = null;
         if (value.isSetAdditionalInfo()) {
-            additionalInfoHolder = additionalInfoConverter.convertFromThrift(value.getAdditionalInfo());
+            additionalInfoHolder = ctx.convert(value.getAdditionalInfo(), AdditionalInfoHolder.class);
         }
 
         return LegalEntityQuestionaryHolder.builder()
@@ -234,7 +209,6 @@ public class LegalEntityQuestionaryConverter implements ThriftConverter<LegalEnt
                 .legalOwner(legalOwnerInfo)
                 .founderList(founderList)
                 .headList(headList)
-                .propertyInfoList(propertyInfoList)
                 .additionalInfoHolder(additionalInfoHolder)
                 .beneficialOwnerList(beneficialOwnerHolderList)
                 .build();

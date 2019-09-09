@@ -1,18 +1,26 @@
-package com.rbkmoney.questionary.converter;
+package com.rbkmoney.questionary.converter.questionary;
 
 import com.rbkmoney.geck.common.util.TypeUtil;
 import com.rbkmoney.questionary.*;
+import com.rbkmoney.questionary.converter.JooqConverter;
+import com.rbkmoney.questionary.converter.JooqConverterContext;
+import com.rbkmoney.questionary.converter.ThriftConverter;
+import com.rbkmoney.questionary.converter.ThriftConverterContext;
 import com.rbkmoney.questionary.domain.enums.IdentityDocumentType;
 import com.rbkmoney.questionary.domain.tables.pojos.LegalOwner;
 import com.rbkmoney.questionary.util.ThriftUtil;
+import org.springframework.stereotype.Component;
 
-public class LegalOwnerConverter implements ThriftConverter<LegalOwner, LegalOwnerInfo> {
+@Component
+public class LegalOwnerConverter implements ThriftConverter<LegalOwnerInfo, LegalOwner>,
+        JooqConverter<LegalOwner, LegalOwnerInfo> {
 
     @Override
-    public LegalOwnerInfo convertToThrift(LegalOwner value) {
+    public LegalOwnerInfo toThrift(LegalOwner value, ThriftConverterContext ctx) {
         LegalOwnerInfo legalOwnerInfo = new LegalOwnerInfo();
         legalOwnerInfo.setInn(value.getLegalOwnerInn());
         legalOwnerInfo.setPdlCategory(value.getPdlCategory());
+        legalOwnerInfo.setPdlRelationDegree(value.getPdlRelationDegree());
 
         ResidenceApprove residenceApprove = new ResidenceApprove();
         residenceApprove.setName(value.getResidenceApproveName());
@@ -70,14 +78,22 @@ public class LegalOwnerConverter implements ThriftConverter<LegalOwner, LegalOwn
 
         legalOwnerInfo.setRussianPrivateEntity(russianPrivateEntity);
 
+        AuthorityConfirmingDocument authorityConfirmingDocument = ctx.convert(value, AuthorityConfirmingDocument.class);
+        ThriftUtil.setIfNotEmpty(authorityConfirmingDocument, legalOwnerInfo::setAuthorityConfirmingDocument);
+
+        legalOwnerInfo.setSnils(value.getSnils());
+        legalOwnerInfo.setPdlCategory(value.getPdlCategory());
+        legalOwnerInfo.setTermOfOffice(value.getTermOfOffice());
+
         return legalOwnerInfo;
     }
 
     @Override
-    public LegalOwner convertFromThrift(LegalOwnerInfo value) {
+    public LegalOwner toJooq(LegalOwnerInfo value, JooqConverterContext ctx) {
         LegalOwner legalOwner = new LegalOwner();
         legalOwner.setLegalOwnerInn(value.getInn());
         legalOwner.setPdlCategory(value.isPdlCategory());
+        legalOwner.setPdlRelationDegree(value.getPdlRelationDegree());
         if (value.isSetResidenceApprove()) {
             if (value.getResidenceApprove().isSetBeginningDate()) {
                 legalOwner.setResidenceApproveBeginningDate(TypeUtil.stringToLocalDateTime(value.getResidenceApprove().getBeginningDate()));
@@ -129,6 +145,16 @@ public class LegalOwnerConverter implements ThriftConverter<LegalOwner, LegalOwn
             legalOwner.setPrivateEntityBirthPlace(russianPrivateEntity.getBirthPlace());
             legalOwner.setPrivateEntityCitizenship(russianPrivateEntity.getCitizenship());
         }
+
+        if (value.getAuthorityConfirmingDocument() != null) {
+            legalOwner.setAuthorityConfirmDocDate(TypeUtil.stringToLocalDateTime(value.getAuthorityConfirmingDocument().getDate()));
+            legalOwner.setAuthorityConfirmDocNumber(value.getAuthorityConfirmingDocument().getNumber());
+            legalOwner.setAuthorityConfirmDocType(value.getAuthorityConfirmingDocument().getType());
+        }
+
+        legalOwner.setSnils(value.getSnils());
+        legalOwner.setPdlRelationDegree(value.getPdlRelationDegree());
+        legalOwner.setTermOfOffice(value.getTermOfOffice());
 
         return legalOwner;
     }
