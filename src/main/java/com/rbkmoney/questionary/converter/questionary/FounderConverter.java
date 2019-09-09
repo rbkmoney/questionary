@@ -1,16 +1,24 @@
-package com.rbkmoney.questionary.converter;
+package com.rbkmoney.questionary.converter.questionary;
 
 import com.rbkmoney.questionary.IndividualPerson;
 import com.rbkmoney.questionary.InternationalLegalEntityFounder;
 import com.rbkmoney.questionary.PersonAnthroponym;
 import com.rbkmoney.questionary.RussianLegalEntityFounder;
+import com.rbkmoney.questionary.converter.JooqConverter;
+import com.rbkmoney.questionary.converter.JooqConverterContext;
+import com.rbkmoney.questionary.converter.ThriftConverter;
+import com.rbkmoney.questionary.converter.ThriftConverterContext;
 import com.rbkmoney.questionary.domain.enums.FounderType;
 import com.rbkmoney.questionary.domain.tables.pojos.Founder;
 import com.rbkmoney.questionary.util.ThriftUtil;
+import org.springframework.stereotype.Component;
 
-public class FounderConverter implements ThriftConverter<Founder, com.rbkmoney.questionary.Founder> {
+@Component
+public class FounderConverter implements ThriftConverter<com.rbkmoney.questionary.Founder, Founder>,
+        JooqConverter<Founder, com.rbkmoney.questionary.Founder> {
+
     @Override
-    public com.rbkmoney.questionary.Founder convertToThrift(Founder value) {
+    public com.rbkmoney.questionary.Founder toThrift(Founder value, ThriftConverterContext ctx) {
         switch (value.getType()) {
             case legal:
                 RussianLegalEntityFounder russianLegalEntityFounder = new RussianLegalEntityFounder();
@@ -36,12 +44,12 @@ public class FounderConverter implements ThriftConverter<Founder, com.rbkmoney.q
 
                 return com.rbkmoney.questionary.Founder.international_legal_entity_founder(internationalLegalEntityFounder);
             default:
-                throw new RuntimeException(String.format("Unknown founder type: %s", value.getType()));
+                throw new IllegalArgumentException(String.format("Unknown founder type: %s", value.getType()));
         }
     }
 
     @Override
-    public Founder convertFromThrift(com.rbkmoney.questionary.Founder value) {
+    public Founder toJooq(com.rbkmoney.questionary.Founder value, JooqConverterContext ctx) {
         Founder founder = new Founder();
         if (value.isSetRussianLegalEntityFounder()) {
             founder.setType(FounderType.legal);

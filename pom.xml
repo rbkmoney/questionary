@@ -10,7 +10,7 @@
     </parent>
 
     <artifactId>questionary</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.2</version>
     <packaging>jar</packaging>
 
     <name>Questionary</name>
@@ -67,7 +67,7 @@
         <dependency>
             <groupId>com.rbkmoney</groupId>
             <artifactId>ank-proto</artifactId>
-            <version>1.10-cb7b657</version>
+            <version>1.13-b10ca88</version>
         </dependency>
 
         <!--spring-->

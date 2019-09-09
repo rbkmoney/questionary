@@ -1,42 +1,33 @@
-package com.rbkmoney.questionary.converter;
+package com.rbkmoney.questionary.converter.questionary;
 
 import com.rbkmoney.geck.common.util.TypeUtil;
 import com.rbkmoney.questionary.*;
+import com.rbkmoney.questionary.converter.JooqConverter;
+import com.rbkmoney.questionary.converter.JooqConverterContext;
+import com.rbkmoney.questionary.converter.ThriftConverter;
+import com.rbkmoney.questionary.converter.ThriftConverterContext;
 import com.rbkmoney.questionary.domain.enums.IdentityDocumentType;
 import com.rbkmoney.questionary.domain.tables.pojos.IndividualEntityQuestionary;
-import com.rbkmoney.questionary.domain.tables.pojos.PropertyInfo;
 import com.rbkmoney.questionary.model.AdditionalInfoHolder;
 import com.rbkmoney.questionary.model.IndividualEntityQuestionaryHolder;
 import com.rbkmoney.questionary.util.ThriftUtil;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class IndividualEntityQuestionaryConverter implements ThriftConverter<IndividualEntityQuestionaryHolder, RussianIndividualEntity> {
-
-    private final AdditionalInfoConverter additionalInfoConverter;
-
-    IndividualEntityQuestionaryConverter() {
-        this.additionalInfoConverter = new AdditionalInfoConverter();
-    }
+@Component
+public class IndividualEntityQuestionaryConverter implements ThriftConverter<RussianIndividualEntity, IndividualEntityQuestionaryHolder>,
+        JooqConverter<IndividualEntityQuestionaryHolder, RussianIndividualEntity> {
 
     @Override
-    public RussianIndividualEntity convertToThrift(IndividualEntityQuestionaryHolder value) {
+    public RussianIndividualEntity toThrift(IndividualEntityQuestionaryHolder value, ThriftConverterContext ctx) {
         final RussianIndividualEntity russianIndividualEntity = new RussianIndividualEntity();
 
         russianIndividualEntity.setInn(value.getQuestionary().getInn());
-        if (value.getPropertyInfoList() != null) {
-            final List<String> propertyInfoList = value.getPropertyInfoList().stream()
-                    .map(PropertyInfo::getDescription)
-                    .collect(Collectors.toList());
-            if (!propertyInfoList.isEmpty()) {
-            russianIndividualEntity.setPropertyInfo(propertyInfoList);
-            }
-        }
 
-        final Activity activity = new Activity();
-        activity.setCode(value.getQuestionary().getOkvd());
-        activity.setDescription(value.getQuestionary().getActivityType());
+        final Activity activity = ctx.convert(value.getQuestionary(), Activity.class);
+
         ThriftUtil.setIfNotEmpty(activity, russianIndividualEntity::setPrincipalActivity);
 
         final RegistrationInfo registrationInfo = new RegistrationInfo();
@@ -51,7 +42,8 @@ public class IndividualEntityQuestionaryConverter implements ThriftConverter<Ind
 
         final ResidencyInfo residencyInfo = new ResidencyInfo();
         IndividualResidencyInfo individualResidencyInfo = new IndividualResidencyInfo();
-        individualResidencyInfo.setTaxResident(value.getQuestionary().getTaxResident());
+        individualResidencyInfo.setUsaTaxResident(value.getIndividualEntityQuestionary().getUsaTaxResident());
+        individualResidencyInfo.setExceptUsaTaxResident(value.getIndividualEntityQuestionary().getExceptUsaTaxResident());
         ThriftUtil.setIfNotEmpty(individualResidencyInfo, residencyInfo::setIndividualResidencyInfo);
         ThriftUtil.setIfNotEmpty(residencyInfo, russianIndividualEntity::setResidencyInfo);
 
@@ -85,19 +77,7 @@ public class IndividualEntityQuestionaryConverter implements ThriftConverter<Ind
         ThriftUtil.setIfNotEmpty(personAnthroponym, russianPrivateEntity::setFio);
         ThriftUtil.setIfNotEmpty(russianPrivateEntity, russianIndividualEntity::setRussianPrivateEntity);
 
-        final LicenseInfo licenseInfo = new LicenseInfo();
-        licenseInfo.setIssuerName(value.getQuestionary().getLicenseIssuerName());
-        licenseInfo.setOfficialNum(value.getQuestionary().getLicenseOfficialNum());
-        licenseInfo.setLicensedActivity(value.getQuestionary().getLicenseLicensedActivity());
-        if (value.getQuestionary().getLicenseExpirationDate() != null) {
-            licenseInfo.setExpirationDate(TypeUtil.temporalToString(value.getQuestionary().getLicenseExpirationDate()));
-        }
-        if (value.getQuestionary().getLicenseEffectiveDate() != null) {
-            licenseInfo.setEffectiveDate(TypeUtil.temporalToString(value.getQuestionary().getLicenseEffectiveDate()));
-        }
-        if (value.getQuestionary().getLicenseIssueDate() != null) {
-            licenseInfo.setIssueDate(TypeUtil.temporalToString(value.getQuestionary().getLicenseIssueDate()));
-        }
+        LicenseInfo licenseInfo = ctx.convert(value.getQuestionary(), LicenseInfo.class);
         ThriftUtil.setIfNotEmpty(licenseInfo, russianIndividualEntity::setLicenseInfo);
 
         final IdentityDocument identityDocument = new IdentityDocument();
@@ -135,15 +115,26 @@ public class IndividualEntityQuestionaryConverter implements ThriftConverter<Ind
         ThriftUtil.setIfNotEmpty(residenceApprove, russianIndividualEntity::setResidenceApprove);
 
         if (value.getAdditionalInfoHolder() != null) {
-            final AdditionalInfo additionalInfo = additionalInfoConverter.convertToThrift(value.getAdditionalInfoHolder());
+            AdditionalInfo additionalInfo = ctx.convert(value.getAdditionalInfoHolder(), AdditionalInfo.class);
             ThriftUtil.setIfNotEmpty(additionalInfo, russianIndividualEntity::setAdditionalInfo);
+        }
+
+        russianIndividualEntity.setSnils(value.getIndividualEntityQuestionary().getSnils());
+        PropertyInfoDocumentType propertyInfoDocumentType = ctx.convert(value.getQuestionary(), PropertyInfoDocumentType.class);
+        ThriftUtil.setIfNotEmpty(propertyInfoDocumentType, russianIndividualEntity::setPropertyInfoDocumentType);
+
+        if (value.getBeneficialOwnerList() != null) {
+            List<BeneficialOwner> beneficialOwnerList = value.getBeneficialOwnerList().stream()
+                    .map(beneficialOwner -> ctx.convert(beneficialOwner, BeneficialOwner.class))
+                    .collect(Collectors.toList());
+            russianIndividualEntity.setBeneficialOwners(beneficialOwnerList);
         }
 
         return russianIndividualEntity;
     }
 
     @Override
-    public IndividualEntityQuestionaryHolder convertFromThrift(RussianIndividualEntity value) {
+    public IndividualEntityQuestionaryHolder toJooq(RussianIndividualEntity value, JooqConverterContext ctx) {
         final IndividualEntityQuestionary individualEntityQuestionary = new IndividualEntityQuestionary();
         if (value.getIndividualPersonCategories() != null) {
             individualEntityQuestionary.setForeignPublicPerson(value.getIndividualPersonCategories().isForeignPublicPerson());
@@ -174,6 +165,13 @@ public class IndividualEntityQuestionaryConverter implements ThriftConverter<Ind
             }
             individualEntityQuestionary.setPrivateEntityBirthPlace(value.getRussianPrivateEntity().getBirthPlace());
             individualEntityQuestionary.setPrivateEntityCitizenship(value.getRussianPrivateEntity().getCitizenship());
+        }
+
+        if (value.isSetResidencyInfo()) {
+            if (value.getResidencyInfo().isSetIndividualResidencyInfo()) {
+                individualEntityQuestionary.setUsaTaxResident(value.getResidencyInfo().getIndividualResidencyInfo().isUsaTaxResident());
+                individualEntityQuestionary.setExceptUsaTaxResident(value.getResidencyInfo().getIndividualResidencyInfo().isSetExceptUsaTaxResident());
+            }
         }
 
         if (value.isSetResidenceApprove()) {
@@ -211,12 +209,20 @@ public class IndividualEntityQuestionaryConverter implements ThriftConverter<Ind
 
         AdditionalInfoHolder additionalInfo = null;
         if (value.isSetAdditionalInfo()) {
-            additionalInfo = additionalInfoConverter.convertFromThrift(value.getAdditionalInfo());
+            additionalInfo = ctx.convert(value.getAdditionalInfo(), AdditionalInfoHolder.class);
+        }
+
+        List<com.rbkmoney.questionary.domain.tables.pojos.BeneficialOwner> beneficialOwnerList = null;
+        if (value.isSetBeneficialOwners()) {
+            beneficialOwnerList = value.getBeneficialOwners().stream()
+                    .map(beneficialOwner -> ctx.convert(beneficialOwner, com.rbkmoney.questionary.domain.tables.pojos.BeneficialOwner.class))
+                    .collect(Collectors.toList());
         }
 
         return IndividualEntityQuestionaryHolder.builder()
                 .individualEntityQuestionary(individualEntityQuestionary)
                 .additionalInfoHolder(additionalInfo)
+                .beneficialOwnerList(beneficialOwnerList)
                 .build();
     }
 }

@@ -4,6 +4,13 @@ CREATE TYPE qs.questionary_entity_type AS ENUM ('legal', 'individual');
 
 CREATE TYPE qs.identity_document_type AS ENUM ('russian_passport');
 
+CREATE TYPE qs.property_info_document_type AS ENUM (
+    'lease_contract',
+    'sublease_contract',
+    'certificate_of_ownership',
+    'other_property_info_document_type'
+    );
+
 CREATE TABLE qs.legal_owner
 (
     id                                BIGSERIAL NOT NULL,
@@ -33,8 +40,14 @@ CREATE TABLE qs.legal_owner
     migration_card_expiration_date    TIMESTAMP WITHOUT TIME ZONE,
     legal_owner_inn                   CHARACTER VARYING,
     pdl_category                      BOOLEAN   NOT NULL DEFAULT FALSE,
+    authority_confirm_doc_type        CHARACTER VARYING,
+    authority_confirm_doc_number      CHARACTER VARYING,
+    authority_confirm_doc_date        TIMESTAMP WITHOUT TIME ZONE,
+    snils                             CHARACTER VARYING,
+    pdl_relation_degree               CHARACTER VARYING,
+    term_of_office                    CHARACTER VARYING,
 
-    CONSTRAINT legal_approve_pkey PRIMARY KEY (id)
+    CONSTRAINT legal_owner_pkey PRIMARY KEY (id)
 );
 
 CREATE TABLE qs.questionary
@@ -54,7 +67,6 @@ CREATE TABLE qs.questionary
     reg_place                 CHARACTER VARYING,
     okvd                      CHARACTER VARYING,
     activity_type             CHARACTER VARYING,
-    tax_resident              BOOLEAN                    NOT NULL DEFAULT FALSE,
     bank_account              CHARACTER VARYING,
     bank_name                 CHARACTER VARYING,
     bank_post_account         CHARACTER VARYING,
@@ -65,6 +77,8 @@ CREATE TABLE qs.questionary
     license_effective_date    TIMESTAMP WITHOUT TIME ZONE,
     license_expiration_date   TIMESTAMP WITHOUT TIME ZONE,
     license_licensed_activity CHARACTER VARYING,
+    property_info_doc_type    qs.property_info_document_type,
+    property_info_doc_name    CHARACTER VARYING,
 
     UNIQUE (id),
     CONSTRAINT questionary_pkey PRIMARY KEY (questionary_id, version)
@@ -107,6 +121,9 @@ CREATE TABLE qs.individual_entity_questionary
     migration_card_number             CHARACTER VARYING,
     migration_card_beginning_date     TIMESTAMP WITHOUT TIME ZONE,
     migration_card_expiration_date    TIMESTAMP WITHOUT TIME ZONE,
+    usa_tax_resident                  BOOLEAN NOT NULL DEFAULT FALSE,
+    except_usa_tax_resident           BOOLEAN NOT NULL DEFAULT FALSE,
+    snils                             CHARACTER VARYING,
 
     CONSTRAINT individual_entity_questionary_pk PRIMARY KEY (id),
     CONSTRAINT fk_individual_entity_to_questionary FOREIGN KEY (id) REFERENCES qs.questionary (id)
@@ -126,6 +143,7 @@ CREATE TABLE qs.legal_entity_questionary
     okato_code                CHARACTER VARYING,
     okpo_code                 CHARACTER VARYING,
     postal_address            CHARACTER VARYING,
+    tax_resident              BOOLEAN NOT NULL DEFAULT FALSE,
     owner_resident            BOOLEAN NOT NULL DEFAULT FALSE,
     fatca                     BOOLEAN NOT NULL DEFAULT FALSE,
     founder_owner_first_name  CHARACTER VARYING,
@@ -206,34 +224,37 @@ CREATE TYPE qs.business_info_type AS ENUM (
     'another_business'
     );
 
-CREATE TABLE qs.property_info
-(
-    id             BIGSERIAL NOT NULL,
-    questionary_id BIGINT    NOT NULL,
-    description    CHARACTER VARYING,
+CREATE TYPE qs.accountant_info_type AS ENUM (
+    'with_chef_accountant',
+    'without_chef_accountant'
+    );
 
-    CONSTRAINT property_info_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_property_info_to_questionary FOREIGN KEY (questionary_id) REFERENCES qs.questionary (id)
-);
+CREATE TYPE qs.without_chief_accountant_type AS ENUM (
+    'head_accounting',
+    'accounting_organization',
+    'individual_accountant'
+    );
 
-CREATE INDEX property_info_questionary_idx ON qs.property_info (questionary_id);
+CREATE TYPE qs.residency_info_type AS ENUM (
+    'individual',
+    'legal'
+    );
 
 CREATE TABLE qs.additional_info
 (
-    id                    BIGINT  NOT NULL,
-    staff_count           INTEGER,
-    has_accountant        BOOLEAN NOT NULL DEFAULT FALSE,
-    accounting            CHARACTER VARYING,
-    accounting_org        CHARACTER VARYING,
-    nko_relation_target   CHARACTER VARYING,
-    relationship_with_nko CHARACTER VARYING,
-    month_operation_count qs.month_operation_count,
-    month_operation_sum   qs.month_operation_sum,
-    storage_facilities    BOOLEAN NOT NULL DEFAULT FALSE,
-    counterparties        CHARACTER VARYING,
-    relation_process      qs.relation_process,
-    benefit_third_parties BOOLEAN NOT NULL DEFAULT FALSE,
-    business_reputation   qs.business_reputation,
+    id                                 BIGINT  NOT NULL,
+    staff_count                        INTEGER,
+    nko_relation_target                CHARACTER VARYING,
+    relationship_with_nko              CHARACTER VARYING,
+    month_operation_count              qs.month_operation_count,
+    month_operation_sum                qs.month_operation_sum,
+    counterparties                     CHARACTER VARYING,
+    relation_process                   qs.relation_process,
+    benefit_third_parties              BOOLEAN NOT NULL DEFAULT FALSE,
+    business_reputation                qs.business_reputation,
+    accountant_info_type               qs.accountant_info_type,
+    accountant_info_without_chief_type qs.without_chief_accountant_type,
+    accountant_info_inn                CHARACTER VARYING,
 
     CONSTRAINT additional_info_pkey PRIMARY KEY (id),
     CONSTRAINT fk_additional_info_to_questionary FOREIGN KEY (id) REFERENCES qs.questionary (id)
@@ -311,6 +332,15 @@ CREATE TABLE qs.beneficial_owner
     migration_card_number             CHARACTER VARYING,
     migration_card_beginning_date     TIMESTAMP WITHOUT TIME ZONE,
     migration_card_expiration_date    TIMESTAMP WITHOUT TIME ZONE,
+    snils                             CHARACTER VARYING,
+    pdl_relation_degree               CHARACTER VARYING,
+    term_of_office                    CHARACTER VARYING,
+    residency_info_type               qs.residency_info_type,
+    usa_tax_resident                  BOOLEAN   NOT NULL DEFAULT FALSE,
+    except_usa_tax_resident           BOOLEAN   NOT NULL DEFAULT FALSE,
+    tax_resident                      BOOLEAN   NOT NULL DEFAULT FALSE,
+    owner_resident                    BOOLEAN   NOT NULL DEFAULT FALSE,
+    fatca                             BOOLEAN   NOT NULL DEFAULT FALSE,
 
     CONSTRAINT beneficial_owner_pkey PRIMARY KEY (id),
     CONSTRAINT fk_beneficial_owner_to_questionary_data FOREIGN KEY (questionary_id) REFERENCES qs.questionary (id)

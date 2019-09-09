@@ -1,19 +1,45 @@
-package com.rbkmoney.questionary.converter;
+package com.rbkmoney.questionary.converter.questionary;
 
 import com.rbkmoney.geck.common.util.TypeUtil;
 import com.rbkmoney.questionary.*;
+import com.rbkmoney.questionary.converter.JooqConverter;
+import com.rbkmoney.questionary.converter.JooqConverterContext;
+import com.rbkmoney.questionary.converter.ThriftConverter;
+import com.rbkmoney.questionary.converter.ThriftConverterContext;
 import com.rbkmoney.questionary.domain.enums.IdentityDocumentType;
+import com.rbkmoney.questionary.domain.enums.ResidencyInfoType;
 import com.rbkmoney.questionary.util.ThriftUtil;
+import org.springframework.stereotype.Component;
 
-public class BeneficialOwnerConverter implements ThriftConverter<com.rbkmoney.questionary.domain.tables.pojos.BeneficialOwner, BeneficialOwner> {
+@Component
+public class BeneficialOwnerConverter implements ThriftConverter<BeneficialOwner, com.rbkmoney.questionary.domain.tables.pojos.BeneficialOwner>,
+        JooqConverter<com.rbkmoney.questionary.domain.tables.pojos.BeneficialOwner, BeneficialOwner> {
+
     @Override
-    public BeneficialOwner convertToThrift(com.rbkmoney.questionary.domain.tables.pojos.BeneficialOwner value) {
+    public BeneficialOwner toThrift(com.rbkmoney.questionary.domain.tables.pojos.BeneficialOwner value, ThriftConverterContext ctx) {
         final BeneficialOwner beneficialOwner = new BeneficialOwner();
+        beneficialOwner.setSnils(value.getSnils());
         beneficialOwner.setPdlCategory(value.getPdlCategory());
         beneficialOwner.setInn(value.getInn());
+        beneficialOwner.setPdlRelationDegree(value.getPdlRelationDegree());
         if (value.getOwnershipPercentage() != null) {
             beneficialOwner.setOwnershipPercentage(value.getOwnershipPercentage().byteValue());
         }
+
+        ResidencyInfo residencyInfo = new ResidencyInfo();
+        if (value.getResidencyInfoType() == ResidencyInfoType.individual) {
+            IndividualResidencyInfo individualResidencyInfo = new IndividualResidencyInfo();
+            individualResidencyInfo.setExceptUsaTaxResident(value.getExceptUsaTaxResident());
+            individualResidencyInfo.setUsaTaxResident(value.getUsaTaxResident());
+            residencyInfo.setIndividualResidencyInfo(individualResidencyInfo);
+        } else if (value.getResidencyInfoType() == ResidencyInfoType.legal) {
+            LegalResidencyInfo legalResidencyInfo = new LegalResidencyInfo();
+            legalResidencyInfo.setFatca(value.getFatca());
+            legalResidencyInfo.setOwnerResident(value.getOwnerResident());
+            legalResidencyInfo.setTaxResident(value.getTaxResident());
+            residencyInfo.setLegalResidencyInfo(legalResidencyInfo);
+        }
+        ThriftUtil.setIfNotEmpty(residencyInfo, beneficialOwner::setResidencyInfo);
 
         final ResidenceApprove residenceApprove = new ResidenceApprove();
         residenceApprove.setName(value.getResidenceApproveName());
@@ -75,11 +101,13 @@ public class BeneficialOwnerConverter implements ThriftConverter<com.rbkmoney.qu
     }
 
     @Override
-    public com.rbkmoney.questionary.domain.tables.pojos.BeneficialOwner convertFromThrift(BeneficialOwner value) {
+    public com.rbkmoney.questionary.domain.tables.pojos.BeneficialOwner toJooq(BeneficialOwner value, JooqConverterContext ctx) {
         var beneficialOwner = new com.rbkmoney.questionary.domain.tables.pojos.BeneficialOwner();
+        beneficialOwner.setSnils(value.getSnils());
         beneficialOwner.setInn(value.getInn());
         beneficialOwner.setOwnershipPercentage((short) value.getOwnershipPercentage());
         beneficialOwner.setPdlCategory(value.isPdlCategory());
+        beneficialOwner.setPdlRelationDegree(value.getPdlRelationDegree());
         if (value.isSetResidenceApprove()) {
             if (value.getResidenceApprove().isSetBeginningDate()) {
                 beneficialOwner.setResidenceApproveBeginningDate(TypeUtil.stringToLocalDateTime(value.getResidenceApprove().getBeginningDate()));
@@ -90,7 +118,18 @@ public class BeneficialOwnerConverter implements ThriftConverter<com.rbkmoney.qu
             beneficialOwner.setResidenceApproveName(value.getResidenceApprove().getName());
             beneficialOwner.setResidenceApproveNumber(value.getResidenceApprove().getNumber());
             beneficialOwner.setResidenceApproveSeries(value.getResidenceApprove().getSeries());
-            ;
+        }
+        if (value.isSetResidencyInfo()) {
+            if (value.getResidencyInfo().isSetIndividualResidencyInfo()) {
+                beneficialOwner.setUsaTaxResident(value.getResidencyInfo().getIndividualResidencyInfo().isUsaTaxResident());
+                beneficialOwner.setExceptUsaTaxResident(value.getResidencyInfo().getIndividualResidencyInfo().isExceptUsaTaxResident());
+                beneficialOwner.setResidencyInfoType(ResidencyInfoType.individual);
+            } else if (value.getResidencyInfo().isSetLegalResidencyInfo()) {
+                beneficialOwner.setTaxResident(value.getResidencyInfo().getLegalResidencyInfo().isTaxResident());
+                beneficialOwner.setOwnerResident(value.getResidencyInfo().getLegalResidencyInfo().isOwnerResident());
+                beneficialOwner.setFatca(value.getResidencyInfo().getLegalResidencyInfo().isFatca());
+                beneficialOwner.setResidencyInfoType(ResidencyInfoType.legal);
+            }
         }
         if (value.isSetMigrationCardInfo()) {
             if (value.getMigrationCardInfo().isSetBeginningDate()) {

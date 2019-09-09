@@ -14,6 +14,10 @@ public class IndividualEntityQuestionaryMapper implements RowMapper<IndividualEn
 
     @Override
     public IndividualEntity mapRow(ResultSet rs, int rowNum) throws SQLException {
+        final RussianIndividualEntity russianIndividualEntity = new RussianIndividualEntity();
+        russianIndividualEntity.setInn(rs.getString(QUESTIONARY.INN.getName()));
+        russianIndividualEntity.setSnils(rs.getString(INDIVIDUAL_ENTITY_QUESTIONARY.SNILS.getName()));
+
         final IndividualPersonCategories individualPersonCategories = new IndividualPersonCategories();
         individualPersonCategories.setBehalfOfForeign(rs.getBoolean(INDIVIDUAL_ENTITY_QUESTIONARY.BEHALF_OF_FOREIGN.getName()));
         individualPersonCategories.setForeignPublicPerson(rs.getBoolean(INDIVIDUAL_ENTITY_QUESTIONARY.FOREIGN_PUBLIC_PERSON.getName()));
@@ -21,6 +25,12 @@ public class IndividualEntityQuestionaryMapper implements RowMapper<IndividualEn
         individualPersonCategories.setWorldwideOrgPublicPerson(rs.getBoolean(INDIVIDUAL_ENTITY_QUESTIONARY.WORLDWIDE_ORG_PUBLIC_PERSON.getName()));
         individualPersonCategories.setHasRepresentative(rs.getBoolean(INDIVIDUAL_ENTITY_QUESTIONARY.HAS_REPRESENTATIVE.getName()));
         individualPersonCategories.setBeneficialOwner(rs.getBoolean(INDIVIDUAL_ENTITY_QUESTIONARY.BENEFICIAL_OWNER.getName()));
+        russianIndividualEntity.setIndividualPersonCategories(individualPersonCategories);
+
+        final IndividualResidencyInfo individualResidencyInfo = new IndividualResidencyInfo();
+        individualResidencyInfo.setUsaTaxResident(rs.getBoolean(INDIVIDUAL_ENTITY_QUESTIONARY.USA_TAX_RESIDENT.getName()));
+        individualResidencyInfo.setExceptUsaTaxResident(rs.getBoolean(INDIVIDUAL_ENTITY_QUESTIONARY.EXCEPT_USA_TAX_RESIDENT.getName()));
+        russianIndividualEntity.setResidencyInfo(ResidencyInfo.individual_residency_info(individualResidencyInfo));
 
         final IndividualRegistrationInfo individualRegistrationInfo = new IndividualRegistrationInfo();
         individualRegistrationInfo.setOgrnip(rs.getString(INDIVIDUAL_ENTITY_QUESTIONARY.OGRNIP.getName()));
@@ -30,12 +40,6 @@ public class IndividualEntityQuestionaryMapper implements RowMapper<IndividualEn
         }
         individualRegistrationInfo.setRegistrationPlace(rs.getString(QUESTIONARY.REG_PLACE.getName()));
 
-        final RussianIndividualEntity russianIndividualEntity = new RussianIndividualEntity();
-        russianIndividualEntity.setInn(rs.getString(QUESTIONARY.INN.getName()));
-        russianIndividualEntity.setIndividualPersonCategories(individualPersonCategories);
-        IndividualResidencyInfo individualResidencyInfo = new IndividualResidencyInfo();
-        individualResidencyInfo.setTaxResident(rs.getBoolean(QUESTIONARY.TAX_RESIDENT.getName()));
-        russianIndividualEntity.setResidencyInfo(ResidencyInfo.individual_residency_info(individualResidencyInfo));
         russianIndividualEntity.setRegistrationInfo(RegistrationInfo.individual_registration_info(individualRegistrationInfo));
 
         final RussianPrivateEntity russianPrivateEntity = new RussianPrivateEntity();

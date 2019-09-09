@@ -1,14 +1,21 @@
-package com.rbkmoney.questionary.converter;
+package com.rbkmoney.questionary.converter.questionary;
 
 import com.rbkmoney.geck.common.util.TBaseUtil;
 import com.rbkmoney.questionary.*;
+import com.rbkmoney.questionary.converter.JooqConverter;
+import com.rbkmoney.questionary.converter.JooqConverterContext;
+import com.rbkmoney.questionary.converter.ThriftConverter;
+import com.rbkmoney.questionary.converter.ThriftConverterContext;
 import com.rbkmoney.questionary.domain.enums.FinancialPosType;
 import com.rbkmoney.questionary.domain.tables.pojos.FinancialPosition;
+import org.springframework.stereotype.Component;
 
-public class FinancialPositionConverter implements ThriftConverter<FinancialPosition, com.rbkmoney.questionary.FinancialPosition> {
+@Component
+public class FinancialPositionConverter implements ThriftConverter<com.rbkmoney.questionary.FinancialPosition, FinancialPosition>,
+        JooqConverter<FinancialPosition, com.rbkmoney.questionary.FinancialPosition> {
 
     @Override
-    public com.rbkmoney.questionary.FinancialPosition convertToThrift(FinancialPosition value) {
+    public com.rbkmoney.questionary.FinancialPosition toThrift(FinancialPosition value, ThriftConverterContext ctx) {
         com.rbkmoney.questionary.FinancialPosition financialPosition = new com.rbkmoney.questionary.FinancialPosition();
         switch (value.getType()) {
             case statement_of_duty:
@@ -36,17 +43,18 @@ public class FinancialPositionConverter implements ThriftConverter<FinancialPosi
                 financialPosition.setAnnualTaxReturnWithoutMarkPaper(new AnnualTaxReturnWithoutMarkPaper());
                 break;
             default:
-                throw new RuntimeException(String.format("Unknown financial position: %s", value.getType()));
+                throw new IllegalArgumentException(String.format("Unknown financial position: %s", value.getType()));
         }
         return financialPosition;
 
     }
 
     @Override
-    public FinancialPosition convertFromThrift(com.rbkmoney.questionary.FinancialPosition value) {
+    public FinancialPosition toJooq(com.rbkmoney.questionary.FinancialPosition value, JooqConverterContext ctx) {
         FinancialPosition financialPosition = new FinancialPosition();
         financialPosition.setType(TBaseUtil.unionFieldToEnum(value, FinancialPosType.class));
 
         return financialPosition;
     }
+
 }

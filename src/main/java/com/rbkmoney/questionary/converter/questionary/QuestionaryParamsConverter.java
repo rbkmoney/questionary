@@ -1,7 +1,11 @@
-package com.rbkmoney.questionary.converter;
+package com.rbkmoney.questionary.converter.questionary;
 
 import com.rbkmoney.geck.common.util.TypeUtil;
 import com.rbkmoney.questionary.*;
+import com.rbkmoney.questionary.converter.JooqConverter;
+import com.rbkmoney.questionary.converter.JooqConverterContext;
+import com.rbkmoney.questionary.converter.ThriftConverter;
+import com.rbkmoney.questionary.converter.ThriftConverterContext;
 import com.rbkmoney.questionary.domain.enums.QuestionaryEntityType;
 import com.rbkmoney.questionary.domain.tables.pojos.Questionary;
 import com.rbkmoney.questionary.manage.QuestionaryData;
@@ -10,20 +14,14 @@ import com.rbkmoney.questionary.model.IndividualEntityQuestionaryHolder;
 import com.rbkmoney.questionary.model.LegalEntityQuestionaryHolder;
 import com.rbkmoney.questionary.model.QuestionaryHolder;
 import com.rbkmoney.questionary.util.ThriftUtil;
+import org.springframework.stereotype.Component;
 
-public class QuestionaryParamsConverter implements ThriftConverter<QuestionaryHolder, QuestionaryParams> {
-
-    private final IndividualEntityQuestionaryConverter individualEntityQuestionaryConverter;
-
-    private final LegalEntityQuestionaryConverter legalEntityQuestionaryConverter;
-
-    public QuestionaryParamsConverter() {
-        this.individualEntityQuestionaryConverter = new IndividualEntityQuestionaryConverter();
-        this.legalEntityQuestionaryConverter = new LegalEntityQuestionaryConverter();
-    }
+@Component
+public class QuestionaryParamsConverter implements ThriftConverter<QuestionaryParams, QuestionaryHolder>,
+        JooqConverter<QuestionaryHolder, QuestionaryParams> {
 
     @Override
-    public QuestionaryParams convertToThrift(QuestionaryHolder value) {
+    public QuestionaryParams toThrift(QuestionaryHolder value, ThriftConverterContext ctx) {
         final QuestionaryParams questionaryParams = new QuestionaryParams();
         questionaryParams.setId(value.getQuestionary().getQuestionaryId());
         questionaryParams.setOwnerId(value.getQuestionary().getOwnerId());
@@ -57,7 +55,7 @@ public class QuestionaryParamsConverter implements ThriftConverter<QuestionaryHo
             Contractor contractor = new Contractor();
             IndividualEntity individualEntity = new IndividualEntity();
             individualEntity.setRussianIndividualEntity(
-                    individualEntityQuestionaryConverter.convertToThrift(value.getIndividualEntityQuestionaryHolder())
+                    ctx.convert(value.getIndividualEntityQuestionaryHolder(), RussianIndividualEntity.class)
             );
             contractor.setIndividualEntity(individualEntity);
 
@@ -66,7 +64,7 @@ public class QuestionaryParamsConverter implements ThriftConverter<QuestionaryHo
             Contractor contractor = new Contractor();
             LegalEntity legalEntity = new LegalEntity();
             legalEntity.setRussianLegalEntity(
-                    legalEntityQuestionaryConverter.convertToThrift(value.getLegalEntityQuestionaryHolder())
+                    ctx.convert(value.getLegalEntityQuestionaryHolder(), RussianLegalEntity.class)
             );
             contractor.setLegalEntity(legalEntity);
 
@@ -79,7 +77,7 @@ public class QuestionaryParamsConverter implements ThriftConverter<QuestionaryHo
     }
 
     @Override
-    public QuestionaryHolder convertFromThrift(QuestionaryParams value) {
+    public QuestionaryHolder toJooq(QuestionaryParams value, JooqConverterContext ctx) {
         final Questionary questionary = new Questionary();
         questionary.setQuestionaryId(value.getId());
         questionary.setOwnerId(value.getOwnerId());
@@ -143,16 +141,18 @@ public class QuestionaryParamsConverter implements ThriftConverter<QuestionaryHo
                         }
                         questionary.setRegPlace(russianIndividualEntity.getRegistrationInfo().getIndividualRegistrationInfo().getRegistrationPlace());
                     }
-                    if (russianIndividualEntity.isSetResidencyInfo() &&
-                            russianIndividualEntity.getResidencyInfo().isSetIndividualResidencyInfo()) {
-                        questionary.setTaxResident(russianIndividualEntity.getResidencyInfo().getIndividualResidencyInfo().isTaxResident());
-                    }
+
                     if (russianIndividualEntity.isSetPrincipalActivity()) {
                         questionary.setOkvd(russianIndividualEntity.getPrincipalActivity().getCode());
                         questionary.setActivityType(russianIndividualEntity.getPrincipalActivity().getDescription());
                     }
+
+                    if (russianIndividualEntity.isSetPropertyInfoDocumentType()) {
+                        ctx.fill(questionary, russianIndividualEntity.getPropertyInfoDocumentType());
+                    }
+
                     final IndividualEntityQuestionaryHolder individualEntityQuestionaryHolder =
-                            individualEntityQuestionaryConverter.convertFromThrift(russianIndividualEntity);
+                            ctx.convert(russianIndividualEntity, IndividualEntityQuestionaryHolder.class);
                     individualEntityQuestionaryHolder.setQuestionary(questionary);
 
                     questionaryHolderBuilder.individualEntityQuestionaryHolder(individualEntityQuestionaryHolder);
@@ -170,10 +170,6 @@ public class QuestionaryParamsConverter implements ThriftConverter<QuestionaryHo
                             questionary.setRegDate(TypeUtil.stringToLocalDateTime(registrationDate));
                         }
                         questionary.setRegPlace(russianLegalEntity.getRegistrationInfo().getLegalRegistrationInfo().getRegistrationPlace());
-                    }
-                    if (russianLegalEntity.isSetResidencyInfo() &&
-                            russianLegalEntity.getResidencyInfo().isSetLegalResidencyInfo()) {
-                        questionary.setTaxResident(russianLegalEntity.getResidencyInfo().getLegalResidencyInfo().isTaxResident());
                     }
                     if (russianLegalEntity.isSetPrincipalActivity()) {
                         questionary.setOkvd(russianLegalEntity.getPrincipalActivity().getCode());
@@ -199,8 +195,13 @@ public class QuestionaryParamsConverter implements ThriftConverter<QuestionaryHo
                             );
                         }
                     }
-                    final LegalEntityQuestionaryHolder legalEntityQuestionaryHolder
-                            = legalEntityQuestionaryConverter.convertFromThrift(russianLegalEntity);
+
+                    if (russianLegalEntity.isSetPropertyInfoDocumentType()) {
+                        ctx.fill(questionary, russianLegalEntity.getPropertyInfoDocumentType());
+                    }
+
+                    final LegalEntityQuestionaryHolder legalEntityQuestionaryHolder =
+                            ctx.convert(russianLegalEntity, LegalEntityQuestionaryHolder.class);
                     legalEntityQuestionaryHolder.setQuestionary(questionary);
 
                     questionaryHolderBuilder.legalEntityQuestionaryHolder(legalEntityQuestionaryHolder);

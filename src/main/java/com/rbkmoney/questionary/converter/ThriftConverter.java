@@ -1,15 +1,13 @@
 package com.rbkmoney.questionary.converter;
 
-import org.apache.thrift.TBase;
-
 /**
- * @param <O> Another object type
- * @param <T> Thrift type
+ * Thrift conversion to jooq
+ *
+ * @param <T> the type of thrift
+ * @param <J> the type of jooq
  */
-public interface ThriftConverter<O, T extends TBase> {
+public interface ThriftConverter<T, J> {
 
-    T convertToThrift(O value);
-
-    O convertFromThrift(T value);
+    T toThrift(J value, ThriftConverterContext ctx);
 
 }

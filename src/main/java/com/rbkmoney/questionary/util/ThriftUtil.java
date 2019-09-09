@@ -12,7 +12,7 @@ import java.util.function.Predicate;
 public class ThriftUtil {
 
     public static <T extends TBase> void setIfNotEmpty(T value, Consumer<T> consumer) {
-        if (TBaseUtil.getSetFieldsCount(value) > 0) {
+        if (value != null && TBaseUtil.getSetFieldsCount(value) > 0) {
             consumer.accept(value);
         }
     }

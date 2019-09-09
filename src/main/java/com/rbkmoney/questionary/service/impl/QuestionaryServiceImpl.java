@@ -1,7 +1,8 @@
 package com.rbkmoney.questionary.service.impl;
 
 import com.rbkmoney.dao.DaoException;
-import com.rbkmoney.questionary.converter.*;
+import com.rbkmoney.questionary.converter.ConverterManager;
+import com.rbkmoney.questionary.converter.questionary.*;
 import com.rbkmoney.questionary.dao.*;
 import com.rbkmoney.questionary.domain.enums.QuestionaryEntityType;
 import com.rbkmoney.questionary.domain.tables.pojos.Questionary;
@@ -34,45 +35,40 @@ public class QuestionaryServiceImpl implements QuestionaryService {
     private final LegalOwnerDao legalOwnerDao;
     private final HeadDao headDao;
     private final FounderDao founderDao;
-    private final PropertyInfoDao propertyInfoDao;
     private final BeneficialOwnerDao beneficialOwnerDao;
 
-    private final QuestionaryParamsConverter questionaryParamsConverter = new QuestionaryParamsConverter();
-    private final AdditionalInfoConverter additionalInfoConverter = new AdditionalInfoConverter();
-    private final FinancialPositionConverter financialPositionConverter = new FinancialPositionConverter();
-    private final HeadConverter headConverter = new HeadConverter();
-    private final FounderConverter founderConverter = new FounderConverter();
-    private final BeneficialOwnerConverter beneficialOwnerConverter = new BeneficialOwnerConverter();
+    private final ConverterManager converterManager;
 
     @Override
     public long saveQuestionary(QuestionaryParams questionaryParams, Long version) throws QuestionaryVersionConflict {
-        log.debug("Converting thrift questionary to DB pojo");
-        final QuestionaryHolder questionaryHolder = questionaryParamsConverter.convertFromThrift(questionaryParams);
+        log.info("Converting thrift questionary to DB pojo");
+        final QuestionaryHolder questionaryHolder = converterManager.convertFromThrift(questionaryParams, QuestionaryHolder.class);
         final Questionary questionary = questionaryHolder.getQuestionary();
         questionary.setVersion(++version);
 
         // Save questionary
         try {
-            log.debug("Save questionary: id={}, ownerId={}, version={}",
+            log.info("Save questionary: id={}, ownerId={}, version={}",
                     questionaryParams.getId(), questionaryParams.getOwnerId(), questionary.getVersion());
             final Long questionaryId = questionaryDao.saveQuestionary(questionary);
-            log.debug("QuestionaryId={}", questionaryId);
+            log.info("QuestionaryId={}", questionaryId);
             if (questionaryHolder.getLegalEntityQuestionaryHolder() != null) {
                 // Save legal entity questionary
                 final LegalEntityQuestionaryHolder legalEntityQuestionaryHolder = questionaryHolder.getLegalEntityQuestionaryHolder();
-                log.debug("Save legal questionary: id={}", questionaryId);
+                log.info("Save legal questionary: id={}", questionaryId);
                 saveLegalEntityQuestionary(questionaryId, legalEntityQuestionaryHolder);
             } else if (questionaryHolder.getIndividualEntityQuestionaryHolder() != null) {
                 // Save individual entity questionary
                 final IndividualEntityQuestionaryHolder individualEntityQuestionaryHolder = questionaryHolder
                         .getIndividualEntityQuestionaryHolder();
-                log.debug("Save individual entity questionary: id={}", questionaryId);
+                log.info("Save individual entity questionary: id={}", questionaryId);
                 saveIndividualEntityQuestionary(questionaryId, individualEntityQuestionaryHolder);
             }
         } catch (DaoException ex) {
             if (ex.getCause() instanceof DuplicateKeyException) {
                 throw new QuestionaryVersionConflict();
             }
+            throw ex;
         }
 
         return questionary.getVersion();
@@ -82,10 +78,10 @@ public class QuestionaryServiceImpl implements QuestionaryService {
     public Snapshot getQuestionary(String questionaryId, Reference reference) throws QuestionaryNotFound {
         Questionary questionary;
         if (reference.isSetHead()) {
-            log.debug("Get questionary head version: id={}", questionaryId);
+            log.info("Get questionary head version: id={}", questionaryId);
             questionary = questionaryDao.getLatestQuestionary(questionaryId);
         } else {
-            log.debug("Get questionary by version: id={}, version={}", questionaryId, reference.getVersion());
+            log.info("Get questionary by version: id={}, version={}", questionaryId, reference.getVersion());
             questionary = questionaryDao.getQuestionaryByIdAndVersion(questionaryId, reference.getVersion());
         }
 
@@ -101,7 +97,7 @@ public class QuestionaryServiceImpl implements QuestionaryService {
             individualEntityQuestionaryHolderBuilder.questionary(questionary);
             individualEntityQuestionaryHolderBuilder.individualEntityQuestionary(individualEntityQuestionary);
             individualEntityQuestionaryHolderBuilder.additionalInfoHolder(getAdditionalInfoById(questionary.getId()));
-            individualEntityQuestionaryHolderBuilder.propertyInfoList(propertyInfoDao.getByQuestionaryId(questionary.getId()));
+            individualEntityQuestionaryHolderBuilder.beneficialOwnerList(beneficialOwnerDao.getByQuestionaryId(questionary.getId()));
             questionaryHolderBuilder.individualEntityQuestionaryHolder(individualEntityQuestionaryHolderBuilder.build());
         } else if (questionary.getType() == QuestionaryEntityType.legal) {
             final var legalEntityQuestionaryHolderBuilder = LegalEntityQuestionaryHolder.builder();
@@ -110,14 +106,13 @@ public class QuestionaryServiceImpl implements QuestionaryService {
             legalEntityQuestionaryHolderBuilder.legalEntityQuestionary(legalEntityQuestionary);
             legalEntityQuestionaryHolderBuilder.legalOwner(legalOwnerDao.getById(legalEntityQuestionary.getLegalOwnerId()));
             legalEntityQuestionaryHolderBuilder.headList(headDao.getByQuestionaryId(questionary.getId()));
-            legalEntityQuestionaryHolderBuilder.propertyInfoList(propertyInfoDao.getByQuestionaryId(questionary.getId()));
             legalEntityQuestionaryHolderBuilder.additionalInfoHolder(getAdditionalInfoById(questionary.getId()));
             legalEntityQuestionaryHolderBuilder.beneficialOwnerList(beneficialOwnerDao.getByQuestionaryId(questionary.getId()));
             legalEntityQuestionaryHolderBuilder.founderList(founderDao.getByQuestionaryId(questionary.getId()));
             questionaryHolderBuilder.legalEntityQuestionaryHolder(legalEntityQuestionaryHolderBuilder.build());
         }
 
-        final QuestionaryParams questionaryParams = questionaryParamsConverter.convertToThrift(questionaryHolderBuilder.build());
+        final QuestionaryParams questionaryParams = converterManager.convertToThrift(questionaryHolderBuilder.build(), QuestionaryParams.class);
 
         final com.rbkmoney.questionary.manage.Questionary thriftQuestionary = new com.rbkmoney.questionary.manage.Questionary();
         thriftQuestionary.setId(questionary.getQuestionaryId());
@@ -154,13 +149,6 @@ public class QuestionaryServiceImpl implements QuestionaryService {
             founderDao.saveAll(founderList);
         }
 
-        if (legalEntityQuestionaryHolder.getPropertyInfoList() != null) {
-            final List<PropertyInfo> propertyInfoList = legalEntityQuestionaryHolder.getPropertyInfoList().stream()
-                    .peek(propertyInfo -> propertyInfo.setQuestionaryId(questionaryId))
-                    .collect(Collectors.toList());
-            propertyInfoDao.saveAll(propertyInfoList);
-        }
-
         if (legalEntityQuestionaryHolder.getBeneficialOwnerList() != null) {
             final List<BeneficialOwner> beneficialOwnerList = legalEntityQuestionaryHolder.getBeneficialOwnerList().stream()
                     .peek(beneficialOwner -> beneficialOwner.setQuestionaryId(questionaryId))
@@ -181,17 +169,17 @@ public class QuestionaryServiceImpl implements QuestionaryService {
         individualEntityQuestionary.setId(questionaryId);
         questionaryDao.saveIndividualEntity(individualEntityQuestionary);
 
-        if (individualEntityQuestionaryHolder.getPropertyInfoList() != null) {
-            final List<PropertyInfo> propertyInfoList = individualEntityQuestionaryHolder.getPropertyInfoList().stream()
-                    .peek(propertyInfo -> propertyInfo.setQuestionaryId(questionaryId))
-                    .collect(Collectors.toList());
-            propertyInfoDao.saveAll(propertyInfoList);
-        }
-
         final AdditionalInfoHolder additionalInfoHolder = individualEntityQuestionaryHolder.getAdditionalInfoHolder();
         if (additionalInfoHolder != null && additionalInfoHolder.getAdditionalInfo() != null) {
             additionalInfoHolder.getAdditionalInfo().setId(questionaryId);
             saveAdditionalInfo(additionalInfoHolder);
+        }
+
+        if (individualEntityQuestionaryHolder.getBeneficialOwnerList() != null) {
+            final List<BeneficialOwner> beneficialOwnerList = individualEntityQuestionaryHolder.getBeneficialOwnerList().stream()
+                    .peek(beneficialOwner -> beneficialOwner.setQuestionaryId(questionaryId))
+                    .collect(Collectors.toList());
+            beneficialOwnerDao.saveAll(beneficialOwnerList);
         }
     }
 

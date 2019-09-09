@@ -1,7 +1,7 @@
 package com.rbkmoney.questionary.model;
 
+import com.rbkmoney.questionary.domain.tables.pojos.BeneficialOwner;
 import com.rbkmoney.questionary.domain.tables.pojos.IndividualEntityQuestionary;
-import com.rbkmoney.questionary.domain.tables.pojos.PropertyInfo;
 import com.rbkmoney.questionary.domain.tables.pojos.Questionary;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,8 +18,8 @@ public class IndividualEntityQuestionaryHolder {
 
     private IndividualEntityQuestionary individualEntityQuestionary;
 
-    private List<PropertyInfo> propertyInfoList;
-
     private AdditionalInfoHolder additionalInfoHolder;
+
+    private List<BeneficialOwner> beneficialOwnerList;
 
 }
