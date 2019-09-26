@@ -44,6 +44,50 @@ public class QuestionaryTest extends AbstractIntegrationTest {
         compareLegalQuestionary(questionaryParams.getData(), questionarySnapshot.getQuestionary().getData());
     }
 
+    @Test
+    public void questionaryVersionTest() throws QuestionaryVersionConflict, QuestionaryNotFound {
+        final QuestionaryParams questionaryParams = new QuestionaryParams();
+        questionaryParams.setId("765432634");
+        questionaryParams.setOwnerId("64");
+
+        final QuestionaryData questionaryData = new QuestionaryData();
+        final ContactInfo contactInfo = new ContactInfo();
+        contactInfo.setEmail("test@mail.com");
+        contactInfo.setPhoneNumber("7903245126");
+        questionaryData.setContactInfo(contactInfo);
+
+        questionaryParams.setData(questionaryData);
+
+        final long firstQuestionaryVersion = questionaryService.saveQuestionary(questionaryParams, 0L);
+        final Snapshot firstQuestionary = questionaryService.getQuestionary("765432634", Reference.head(new Head()));
+
+        firstQuestionary.getQuestionary().getData().getContactInfo().setEmail("test2@mail.com");
+        questionaryParams.setData(firstQuestionary.getQuestionary().getData());
+        final long secondQuestionaryVersion = questionaryService.saveQuestionary(questionaryParams, firstQuestionaryVersion);
+        final Snapshot secondQuestionary = questionaryService.getQuestionary("765432634", Reference.version(secondQuestionaryVersion));
+
+        Assert.assertEquals("test2@mail.com", secondQuestionary.getQuestionary().getData().getContactInfo().getEmail());
+        Assert.assertEquals(2L, secondQuestionaryVersion);
+    }
+
+    @Test(expected = QuestionaryVersionConflict.class)
+    public void questionaryDuplicateVersionTest() throws QuestionaryVersionConflict {
+        final QuestionaryParams questionaryParams = new QuestionaryParams();
+        questionaryParams.setId("87723261");
+        questionaryParams.setOwnerId("64");
+
+        final QuestionaryData questionaryData = new QuestionaryData();
+        final ContactInfo contactInfo = new ContactInfo();
+        contactInfo.setEmail("test@mail.com");
+        contactInfo.setPhoneNumber("7903245126");
+        questionaryData.setContactInfo(contactInfo);
+
+        questionaryParams.setData(questionaryData);
+
+        questionaryService.saveQuestionary(questionaryParams, 1L);
+        questionaryService.saveQuestionary(questionaryParams, 1L);
+    }
+
     private void compareIndividualQuestionary(QuestionaryData data, QuestionaryData questionaryData) {
         Assert.assertEquals("ShopInfo (description) not equals", data.getShopInfo().getDetails().getDescription(),
                 questionaryData.getShopInfo().getDetails().getDescription());
@@ -604,7 +648,5 @@ public class QuestionaryTest extends AbstractIntegrationTest {
                     actualResidencyInfo.getLegalResidencyInfo().isTaxResident());
         }
     }
-
-
 
 }

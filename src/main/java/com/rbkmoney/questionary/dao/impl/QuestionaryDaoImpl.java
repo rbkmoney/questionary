@@ -72,6 +72,7 @@ public class QuestionaryDaoImpl extends AbstractGenericDao implements Questionar
                 .and(QUESTIONARY.VERSION.eq(
                         getDslContext().select(DSL.max(QUESTIONARY.VERSION))
                                 .from(QUESTIONARY)
+                                .where(QUESTIONARY.QUESTIONARY_ID.eq(questionaryId))
                 ));
         return fetchOne(query, questionaryRowMapper);
     }

@@ -15,6 +15,7 @@ import com.rbkmoney.questionary.model.LegalEntityQuestionaryHolder;
 import com.rbkmoney.questionary.model.QuestionaryHolder;
 import com.rbkmoney.questionary.util.ThriftUtil;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 @Component
 public class QuestionaryParamsConverter implements ThriftConverter<QuestionaryParams, QuestionaryHolder>,
@@ -38,7 +39,9 @@ public class QuestionaryParamsConverter implements ThriftConverter<QuestionaryPa
         shopDetails.setDescription(value.getQuestionary().getShopDescription());
         ThriftUtil.setIfNotEmpty(shopDetails, shopInfo::setDetails);
         ShopLocation shopLocation = new ShopLocation();
-        shopLocation.setUrl(value.getQuestionary().getShopUrl());
+        if (!StringUtils.isEmpty(value.getQuestionary().getShopUrl())) {
+            shopLocation.setUrl(value.getQuestionary().getShopUrl());
+        }
         ThriftUtil.setIfNotEmpty(shopLocation, shopInfo::setLocation);
         ThriftUtil.setIfNotEmpty(shopInfo, questionaryData::setShopInfo);
 
