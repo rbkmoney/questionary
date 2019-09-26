@@ -1,0 +1,1 @@
+ALTER TABLE qs.questionary ALTER COLUMN type DROP NOT NULL;
