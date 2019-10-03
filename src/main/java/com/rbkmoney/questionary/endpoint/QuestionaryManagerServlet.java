@@ -8,7 +8,7 @@ import javax.servlet.*;
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 
-@WebServlet("/questionary")
+@WebServlet("/v1/questionary")
 public class QuestionaryManagerServlet extends GenericServlet {
 
     private Servlet thriftServlet;
