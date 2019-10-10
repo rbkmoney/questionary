@@ -45,6 +45,34 @@ public class QuestionaryTest extends AbstractIntegrationTest {
     }
 
     @Test
+    public void saveLegalQuestionaryMinimalDataTest() throws QuestionaryVersionConflict, QuestionaryNotFound {
+        final QuestionaryParams questionaryParams = new QuestionaryParams();
+        questionaryParams.setId("6176312415");
+        questionaryParams.setOwnerId("64");
+        Contractor legalEntity = Contractor.legal_entity(LegalEntity.russian_legal_entity(new RussianLegalEntity()));
+        questionaryParams.setData(new QuestionaryData().setContractor(legalEntity));
+        final long questionaryVersion = questionaryService.saveQuestionary(questionaryParams, 1L);
+        final Reference reference = new Reference();
+        reference.setHead(new Head());
+        final Snapshot questionarySnapshot = questionaryService.getQuestionary("6176312415", reference);
+        Assert.assertNotNull(questionarySnapshot);
+    }
+
+    @Test
+    public void saveIndividualQuestionaryMinimalDataTest() throws QuestionaryVersionConflict, QuestionaryNotFound {
+        final QuestionaryParams questionaryParams = new QuestionaryParams();
+        questionaryParams.setId("86739198237");
+        questionaryParams.setOwnerId("64");
+        Contractor individualEntity = Contractor.individual_entity(IndividualEntity.russian_individual_entity(new RussianIndividualEntity()));
+        questionaryParams.setData(new QuestionaryData().setContractor(individualEntity));
+        final long questionaryVersion = questionaryService.saveQuestionary(questionaryParams, 1L);
+        final Reference reference = new Reference();
+        reference.setHead(new Head());
+        final Snapshot questionarySnapshot = questionaryService.getQuestionary("86739198237", reference);
+        Assert.assertNotNull(questionarySnapshot);
+    }
+
+    @Test
     public void questionaryVersionTest() throws QuestionaryVersionConflict, QuestionaryNotFound {
         final QuestionaryParams questionaryParams = new QuestionaryParams();
         questionaryParams.setId("765432634");

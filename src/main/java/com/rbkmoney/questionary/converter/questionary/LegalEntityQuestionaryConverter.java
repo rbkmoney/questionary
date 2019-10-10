@@ -50,8 +50,10 @@ public class LegalEntityQuestionaryConverter implements ThriftConverter<RussianL
         russianLegalEntity.setOkpoCode(value.getLegalEntityQuestionary().getOkpoCode());
         russianLegalEntity.setPostalAddress(value.getLegalEntityQuestionary().getPostalAddress());
 
-        PropertyInfoDocumentType propertyInfoDocumentType = ctx.convert(value.getQuestionary(), PropertyInfoDocumentType.class);
-        russianLegalEntity.setPropertyInfoDocumentType(propertyInfoDocumentType);
+        if (value.getQuestionary().getPropertyInfoDocType() != null) {
+            PropertyInfoDocumentType propertyInfoDocumentType = ctx.convert(value.getQuestionary(), PropertyInfoDocumentType.class);
+            russianLegalEntity.setPropertyInfoDocumentType(propertyInfoDocumentType);
+        }
 
         final FoundersInfo foundersInfo = new FoundersInfo();
         if (value.getFounderList() != null) {
