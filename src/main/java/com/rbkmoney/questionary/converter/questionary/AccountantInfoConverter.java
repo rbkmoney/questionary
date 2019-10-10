@@ -1,7 +1,10 @@
 package com.rbkmoney.questionary.converter.questionary;
 
 import com.rbkmoney.questionary.*;
-import com.rbkmoney.questionary.converter.*;
+import com.rbkmoney.questionary.converter.JooqConverterContext;
+import com.rbkmoney.questionary.converter.JooqFillConverter;
+import com.rbkmoney.questionary.converter.ThriftConverter;
+import com.rbkmoney.questionary.converter.ThriftConverterContext;
 import com.rbkmoney.questionary.domain.enums.AccountantInfoType;
 import com.rbkmoney.questionary.domain.enums.WithoutChiefAccountantType;
 import com.rbkmoney.questionary.domain.tables.pojos.AdditionalInfo;

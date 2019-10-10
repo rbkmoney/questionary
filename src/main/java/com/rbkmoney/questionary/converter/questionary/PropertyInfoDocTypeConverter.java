@@ -14,6 +14,9 @@ public class PropertyInfoDocTypeConverter implements ThriftConverter<PropertyInf
 
     @Override
     public PropertyInfoDocumentType toThrift(Questionary value, ThriftConverterContext ctx) {
+        if (value.getPropertyInfoDocType() == null) {
+            return null;
+        }
         switch (value.getPropertyInfoDocType()) {
             case lease_contract:
                 return PropertyInfoDocumentType.lease_contract(new LeaseContract());
