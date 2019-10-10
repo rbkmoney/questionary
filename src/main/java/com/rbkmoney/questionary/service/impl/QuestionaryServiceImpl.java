@@ -2,7 +2,6 @@ package com.rbkmoney.questionary.service.impl;
 
 import com.rbkmoney.dao.DaoException;
 import com.rbkmoney.questionary.converter.ConverterManager;
-import com.rbkmoney.questionary.converter.questionary.*;
 import com.rbkmoney.questionary.dao.*;
 import com.rbkmoney.questionary.domain.enums.QuestionaryEntityType;
 import com.rbkmoney.questionary.domain.tables.pojos.Questionary;
@@ -15,6 +14,7 @@ import com.rbkmoney.questionary.model.QuestionaryHolder;
 import com.rbkmoney.questionary.service.QuestionaryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.thrift.TException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -78,20 +78,22 @@ public class QuestionaryServiceImpl implements QuestionaryService {
     public Snapshot getQuestionary(String questionaryId, Reference reference) throws QuestionaryNotFound {
         Questionary questionary;
         if (reference.isSetHead()) {
-            log.info("Get questionary head version: id={}", questionaryId);
+            log.info("Get questionary head version. Questionary id={}", questionaryId);
             questionary = questionaryDao.getLatestQuestionary(questionaryId);
         } else {
-            log.info("Get questionary by version: id={}, version={}", questionaryId, reference.getVersion());
+            log.info("Get questionary by version. Questionary id={}, version={}", questionaryId, reference.getVersion());
             questionary = questionaryDao.getQuestionaryByIdAndVersion(questionaryId, reference.getVersion());
         }
 
         if (questionary == null) {
+            log.info("Questionary '{}' not found", questionaryId);
             throw new QuestionaryNotFound();
         }
 
-        final var questionaryHolderBuilder = QuestionaryHolder.builder();
+        QuestionaryHolder.QuestionaryHolderBuilder questionaryHolderBuilder = QuestionaryHolder.builder();
         questionaryHolderBuilder.questionary(questionary);
         if (questionary.getType() == QuestionaryEntityType.individual) {
+            log.info("Get individual questionary '{}'", questionaryId);
             final var individualEntityQuestionaryHolderBuilder = IndividualEntityQuestionaryHolder.builder();
             final IndividualEntityQuestionary individualEntityQuestionary = questionaryDao.getIndividualEntityQuestionaryById(questionary.getId());
             individualEntityQuestionaryHolderBuilder.questionary(questionary);
@@ -100,6 +102,7 @@ public class QuestionaryServiceImpl implements QuestionaryService {
             individualEntityQuestionaryHolderBuilder.beneficialOwnerList(beneficialOwnerDao.getByQuestionaryId(questionary.getId()));
             questionaryHolderBuilder.individualEntityQuestionaryHolder(individualEntityQuestionaryHolderBuilder.build());
         } else if (questionary.getType() == QuestionaryEntityType.legal) {
+            log.info("Get legal questionary '{}'", questionaryId);
             final var legalEntityQuestionaryHolderBuilder = LegalEntityQuestionaryHolder.builder();
             final LegalEntityQuestionary legalEntityQuestionary = questionaryDao.getLegalEntityQuestionaryById(questionary.getId());
             legalEntityQuestionaryHolderBuilder.questionary(questionary);
@@ -112,6 +115,7 @@ public class QuestionaryServiceImpl implements QuestionaryService {
             questionaryHolderBuilder.legalEntityQuestionaryHolder(legalEntityQuestionaryHolderBuilder.build());
         }
 
+        log.info("Convert questionary '{}' to thrift", questionaryId);
         final QuestionaryParams questionaryParams = converterManager.convertToThrift(questionaryHolderBuilder.build(), QuestionaryParams.class);
 
         final com.rbkmoney.questionary.manage.Questionary thriftQuestionary = new com.rbkmoney.questionary.manage.Questionary();

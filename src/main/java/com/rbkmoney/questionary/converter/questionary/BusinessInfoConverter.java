@@ -43,7 +43,7 @@ public class BusinessInfoConverter implements ThriftConverter<com.rbkmoney.quest
                 businessInfo.setAnotherBusiness(new AnotherBusiness(value.getDescription()));
                 break;
             default:
-                throw new RuntimeException(String.format("Unknown business info: %s", businessInfo));
+                throw new IllegalArgumentException(String.format("Unknown business info: %s", businessInfo));
         }
         return businessInfo;
     }

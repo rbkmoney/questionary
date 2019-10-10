@@ -120,8 +120,10 @@ public class IndividualEntityQuestionaryConverter implements ThriftConverter<Rus
         }
 
         russianIndividualEntity.setSnils(value.getIndividualEntityQuestionary().getSnils());
-        PropertyInfoDocumentType propertyInfoDocumentType = ctx.convert(value.getQuestionary(), PropertyInfoDocumentType.class);
-        ThriftUtil.setIfNotEmpty(propertyInfoDocumentType, russianIndividualEntity::setPropertyInfoDocumentType);
+        if (value.getQuestionary().getPropertyInfoDocType() != null) {
+            PropertyInfoDocumentType propertyInfoDocumentType = ctx.convert(value.getQuestionary(), PropertyInfoDocumentType.class);
+            ThriftUtil.setIfNotEmpty(propertyInfoDocumentType, russianIndividualEntity::setPropertyInfoDocumentType);
+        }
 
         if (value.getBeneficialOwnerList() != null) {
             List<BeneficialOwner> beneficialOwnerList = value.getBeneficialOwnerList().stream()

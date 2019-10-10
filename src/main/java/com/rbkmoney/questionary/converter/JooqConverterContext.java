@@ -2,7 +2,6 @@ package com.rbkmoney.questionary.converter;
 
 import lombok.RequiredArgsConstructor;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @RequiredArgsConstructor
