@@ -46,8 +46,7 @@ public class LegalOwnerConverter implements ThriftConverter<LegalOwnerInfo, Lega
 
         IdentityDocument identityDocument = new IdentityDocument();
         RussianDomesticPassport russianDomesticPassport = new RussianDomesticPassport();
-        russianDomesticPassport.setSeries(value.getIdentityDocSeries());
-        russianDomesticPassport.setNumber(value.getIdentityDocNumber());
+        russianDomesticPassport.setSeriesNumber(value.getIdentityDocSeriesNumber());
         if (value.getIdentityDocIssuedAt() != null) {
             russianDomesticPassport.setIssuedAt(TypeUtil.temporalToString(value.getIdentityDocIssuedAt()));
         }
@@ -70,11 +69,7 @@ public class LegalOwnerConverter implements ThriftConverter<LegalOwnerInfo, Lega
         contactInfo.setPhoneNumber(value.getPrivateEntityPhoneNumber());
         ThriftUtil.setIfNotEmpty(contactInfo, russianPrivateEntity::setContactInfo);
 
-        PersonAnthroponym personAnthroponym = new PersonAnthroponym();
-        personAnthroponym.setFirstName(value.getPrivateEntityFirstName());
-        personAnthroponym.setSecondName(value.getPrivateEntitySecondName());
-        personAnthroponym.setMiddleName(value.getPrivateEntityMiddleName());
-        ThriftUtil.setIfNotEmpty(personAnthroponym, russianPrivateEntity::setFio);
+        russianPrivateEntity.setFio(value.getPrivateEntityFio());
 
         legalOwnerInfo.setRussianPrivateEntity(russianPrivateEntity);
 
@@ -84,6 +79,7 @@ public class LegalOwnerConverter implements ThriftConverter<LegalOwnerInfo, Lega
         legalOwnerInfo.setSnils(value.getSnils());
         legalOwnerInfo.setPdlCategory(value.getPdlCategory());
         legalOwnerInfo.setTermOfOffice(value.getTermOfOffice());
+        legalOwnerInfo.setHeadPosition(value.getHeadPosition());
 
         return legalOwnerInfo;
     }
@@ -121,17 +117,14 @@ public class LegalOwnerConverter implements ThriftConverter<LegalOwnerInfo, Lega
                 legalOwner.setIdentityDocIssuedAt(TypeUtil.stringToLocalDateTime(russianPassport.getIssuedAt()));
                 legalOwner.setIdentityDocIssuer(russianPassport.getIssuer());
                 legalOwner.setIdentityDocIssuerCode(russianPassport.getIssuerCode());
-                legalOwner.setIdentityDocNumber(russianPassport.getNumber());
-                legalOwner.setIdentityDocSeries(russianPassport.getSeries());
+                legalOwner.setIdentityDocSeriesNumber(russianPassport.getSeriesNumber());
             }
         }
 
         RussianPrivateEntity russianPrivateEntity = value.getRussianPrivateEntity();
         if (russianPrivateEntity != null) {
             if (russianPrivateEntity.isSetFio()) {
-                legalOwner.setPrivateEntityFirstName(russianPrivateEntity.getFio().getFirstName());
-                legalOwner.setPrivateEntitySecondName(russianPrivateEntity.getFio().getSecondName());
-                legalOwner.setPrivateEntityMiddleName(russianPrivateEntity.getFio().getMiddleName());
+                legalOwner.setPrivateEntityFio(russianPrivateEntity.getFio());
             }
             if (russianPrivateEntity.isSetContactInfo()) {
                 legalOwner.setPrivateEntityEmail(russianPrivateEntity.getContactInfo().getEmail());
@@ -155,6 +148,7 @@ public class LegalOwnerConverter implements ThriftConverter<LegalOwnerInfo, Lega
         legalOwner.setSnils(value.getSnils());
         legalOwner.setPdlRelationDegree(value.getPdlRelationDegree());
         legalOwner.setTermOfOffice(value.getTermOfOffice());
+        legalOwner.setHeadPosition(value.getHeadPosition());
 
         return legalOwner;
     }

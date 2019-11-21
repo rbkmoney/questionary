@@ -19,11 +19,7 @@ public class LegalOwnerMapper implements RowMapper<LegalOwnerInfo> {
         legalOwnerInfo.setPdlCategory(rs.getBoolean(LEGAL_OWNER.PDL_CATEGORY.getName()));
 
         final RussianPrivateEntity russianPrivateEntity = new RussianPrivateEntity();
-        final PersonAnthroponym personAnthroponym = new PersonAnthroponym();
-        personAnthroponym.setFirstName(rs.getString(LEGAL_OWNER.PRIVATE_ENTITY_FIRST_NAME.getName()));
-        personAnthroponym.setSecondName(rs.getString(LEGAL_OWNER.PRIVATE_ENTITY_SECOND_NAME.getName()));
-        personAnthroponym.setMiddleName(rs.getString(LEGAL_OWNER.PRIVATE_ENTITY_MIDDLE_NAME.getName()));
-        russianPrivateEntity.setFio(personAnthroponym);
+        russianPrivateEntity.setFio(rs.getString(LEGAL_OWNER.PRIVATE_ENTITY_FIO.getName()));
         final ContactInfo contactInfo = new ContactInfo();
         contactInfo.setPhoneNumber(rs.getString(LEGAL_OWNER.PRIVATE_ENTITY_PHONE_NUMBER.getName()));
         contactInfo.setEmail(rs.getString(LEGAL_OWNER.PRIVATE_ENTITY_EMAIL.getName()));
@@ -46,8 +42,7 @@ public class LegalOwnerMapper implements RowMapper<LegalOwnerInfo> {
         if (identityDocIssuedAt != null) {
             russianDomesticPassport.setIssuedAt(TypeUtil.temporalToString(identityDocIssuedAt));
         }
-        russianDomesticPassport.setNumber(rs.getString(LEGAL_OWNER.IDENTITY_DOC_NUMBER.getName()));
-        russianDomesticPassport.setSeries(rs.getString(LEGAL_OWNER.IDENTITY_DOC_SERIES.getName()));
+        russianDomesticPassport.setSeriesNumber(rs.getString(LEGAL_OWNER.IDENTITY_DOC_SERIES_NUMBER.getName()));
         identityDocument.setRussianDomesticPassword(russianDomesticPassport);
         legalOwnerInfo.setIdentityDocument(identityDocument);
 

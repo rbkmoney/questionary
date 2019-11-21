@@ -25,6 +25,9 @@ public class IndividualEntityQuestionaryConverter implements ThriftConverter<Rus
         final RussianIndividualEntity russianIndividualEntity = new RussianIndividualEntity();
 
         russianIndividualEntity.setInn(value.getQuestionary().getInn());
+        russianIndividualEntity.setPdlCategory(value.getIndividualEntityQuestionary().getPdlCategory());
+        russianIndividualEntity.setPdlRelationDegree(value.getIndividualEntityQuestionary().getPdlRelationDegree());
+        russianIndividualEntity.setHasBeneficialOwners(value.getIndividualEntityQuestionary().getBeneficialOwner());
 
         final Activity activity = ctx.convert(value.getQuestionary(), Activity.class);
 
@@ -70,11 +73,7 @@ public class IndividualEntityQuestionaryConverter implements ThriftConverter<Rus
         contactInfo.setPhoneNumber(value.getIndividualEntityQuestionary().getPrivateEntityPhoneNumber());
         ThriftUtil.setIfNotEmpty(contactInfo, russianPrivateEntity::setContactInfo);
 
-        final PersonAnthroponym personAnthroponym = new PersonAnthroponym();
-        personAnthroponym.setFirstName(value.getIndividualEntityQuestionary().getPrivateEntityFirstName());
-        personAnthroponym.setSecondName(value.getIndividualEntityQuestionary().getPrivateEntitySecondName());
-        personAnthroponym.setMiddleName(value.getIndividualEntityQuestionary().getPrivateEntityMiddleName());
-        ThriftUtil.setIfNotEmpty(personAnthroponym, russianPrivateEntity::setFio);
+        russianPrivateEntity.setFio(value.getIndividualEntityQuestionary().getPrivateEntityFio());
         ThriftUtil.setIfNotEmpty(russianPrivateEntity, russianIndividualEntity::setRussianPrivateEntity);
 
         LicenseInfo licenseInfo = ctx.convert(value.getQuestionary(), LicenseInfo.class);
@@ -82,8 +81,7 @@ public class IndividualEntityQuestionaryConverter implements ThriftConverter<Rus
 
         final IdentityDocument identityDocument = new IdentityDocument();
         RussianDomesticPassport russianDomesticPassport = new RussianDomesticPassport();
-        russianDomesticPassport.setSeries(value.getIndividualEntityQuestionary().getIdentityDocSeries());
-        russianDomesticPassport.setNumber(value.getIndividualEntityQuestionary().getIdentityDocNumber());
+        russianDomesticPassport.setSeriesNumber(value.getIndividualEntityQuestionary().getIdentityDocSeriesNumber());
         if (value.getIndividualEntityQuestionary().getIdentityDocIssuedAt() != null) {
             russianDomesticPassport.setIssuedAt(TypeUtil.temporalToString(value.getIndividualEntityQuestionary().getIdentityDocIssuedAt()));
         }
@@ -138,6 +136,9 @@ public class IndividualEntityQuestionaryConverter implements ThriftConverter<Rus
     @Override
     public IndividualEntityQuestionaryHolder toJooq(RussianIndividualEntity value, JooqConverterContext ctx) {
         final IndividualEntityQuestionary individualEntityQuestionary = new IndividualEntityQuestionary();
+        individualEntityQuestionary.setPdlCategory(value.isPdlCategory());
+        individualEntityQuestionary.setPdlRelationDegree(value.getPdlRelationDegree());
+        individualEntityQuestionary.setBeneficialOwner(value.isHasBeneficialOwners());
         if (value.getIndividualPersonCategories() != null) {
             individualEntityQuestionary.setForeignPublicPerson(value.getIndividualPersonCategories().isForeignPublicPerson());
             individualEntityQuestionary.setForeignRelativePerson(value.getIndividualPersonCategories().isForeignRelativePerson());
@@ -152,9 +153,7 @@ public class IndividualEntityQuestionaryConverter implements ThriftConverter<Rus
 
         if (value.isSetRussianPrivateEntity()) {
             if (value.getRussianPrivateEntity().isSetFio()) {
-                individualEntityQuestionary.setPrivateEntityFirstName(value.getRussianPrivateEntity().getFio().getFirstName());
-                individualEntityQuestionary.setPrivateEntitySecondName(value.getRussianPrivateEntity().getFio().getSecondName());
-                individualEntityQuestionary.setPrivateEntityMiddleName(value.getRussianPrivateEntity().getFio().getMiddleName());
+                individualEntityQuestionary.setPrivateEntityFio(value.getRussianPrivateEntity().getFio());
             }
             if (value.getRussianPrivateEntity().isSetContactInfo()) {
                 individualEntityQuestionary.setPrivateEntityEmail(value.getRussianPrivateEntity().getContactInfo().getEmail());
@@ -204,8 +203,7 @@ public class IndividualEntityQuestionaryConverter implements ThriftConverter<Rus
                 individualEntityQuestionary.setIdentityDocIssuedAt(TypeUtil.stringToLocalDateTime(russianPassport.getIssuedAt()));
                 individualEntityQuestionary.setIdentityDocIssuer(russianPassport.getIssuer());
                 individualEntityQuestionary.setIdentityDocIssuerCode(russianPassport.getIssuerCode());
-                individualEntityQuestionary.setIdentityDocNumber(russianPassport.getNumber());
-                individualEntityQuestionary.setIdentityDocSeries(russianPassport.getSeries());
+                individualEntityQuestionary.setIdentityDocSeriesNumber(russianPassport.getSeriesNumber());
             }
         }
 

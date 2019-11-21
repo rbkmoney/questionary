@@ -2,7 +2,6 @@ package com.rbkmoney.questionary.converter.questionary;
 
 import com.rbkmoney.questionary.IndividualPerson;
 import com.rbkmoney.questionary.InternationalLegalEntityFounder;
-import com.rbkmoney.questionary.PersonAnthroponym;
 import com.rbkmoney.questionary.RussianLegalEntityFounder;
 import com.rbkmoney.questionary.converter.JooqConverter;
 import com.rbkmoney.questionary.converter.JooqConverterContext;
@@ -10,7 +9,6 @@ import com.rbkmoney.questionary.converter.ThriftConverter;
 import com.rbkmoney.questionary.converter.ThriftConverterContext;
 import com.rbkmoney.questionary.domain.enums.FounderType;
 import com.rbkmoney.questionary.domain.tables.pojos.Founder;
-import com.rbkmoney.questionary.util.ThriftUtil;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -29,12 +27,8 @@ public class FounderConverter implements ThriftConverter<com.rbkmoney.questionar
                 return com.rbkmoney.questionary.Founder.russian_legal_entity_founder(russianLegalEntityFounder);
             case individual:
                 IndividualPerson individualPerson = new IndividualPerson();
-                PersonAnthroponym personAnthroponym = new PersonAnthroponym();
-                personAnthroponym.setFirstName(value.getFirstName());
-                personAnthroponym.setSecondName(value.getSecondName());
-                personAnthroponym.setMiddleName(value.getMiddleName());
+                individualPerson.setFio(value.getFio());
                 individualPerson.setInn(value.getInn());
-                ThriftUtil.setIfNotEmpty(personAnthroponym, individualPerson::setFio);
 
                 return com.rbkmoney.questionary.Founder.individual_person_founder(individualPerson);
             case international_legal:
@@ -59,9 +53,7 @@ public class FounderConverter implements ThriftConverter<com.rbkmoney.questionar
         } else if (value.isSetIndividualPersonFounder()) {
             founder.setType(FounderType.individual);
             founder.setInn(value.getIndividualPersonFounder().getInn());
-            founder.setFirstName(value.getIndividualPersonFounder().getFio().getFirstName());
-            founder.setSecondName(value.getIndividualPersonFounder().getFio().getSecondName());
-            founder.setMiddleName(value.getIndividualPersonFounder().getFio().getMiddleName());
+            founder.setFio(value.getIndividualPersonFounder().getFio());
         } else if (value.isSetInternationalLegalEntityFounder()) {
             founder.setType(FounderType.international_legal);
             founder.setCountry(value.getInternationalLegalEntityFounder().getCountry());

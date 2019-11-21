@@ -1,7 +1,6 @@
 package com.rbkmoney.questionary.converter.questionary;
 
 import com.rbkmoney.questionary.IndividualPerson;
-import com.rbkmoney.questionary.PersonAnthroponym;
 import com.rbkmoney.questionary.converter.JooqConverter;
 import com.rbkmoney.questionary.converter.JooqConverterContext;
 import com.rbkmoney.questionary.converter.ThriftConverter;
@@ -19,11 +18,7 @@ public class HeadConverter implements ThriftConverter<com.rbkmoney.questionary.H
         head.setPosition(value.getPosition());
         IndividualPerson individualPerson = new IndividualPerson();
         individualPerson.setInn(value.getInn());
-        PersonAnthroponym personAnthroponym = new PersonAnthroponym();
-        personAnthroponym.setFirstName(value.getFirstName());
-        personAnthroponym.setSecondName(value.getSecondName());
-        personAnthroponym.setMiddleName(value.getMiddleName());
-        ThriftUtil.setIfNotEmpty(personAnthroponym, individualPerson::setFio);
+        individualPerson.setFio(value.getFio());
         ThriftUtil.setIfNotEmpty(individualPerson, head::setIndividualPerson);
 
         return head;
@@ -35,9 +30,7 @@ public class HeadConverter implements ThriftConverter<com.rbkmoney.questionary.H
         if (value.isSetIndividualPerson()) {
             head.setInn(value.getIndividualPerson().getInn());
             if (value.getIndividualPerson().getFio() != null) {
-                head.setFirstName(value.getIndividualPerson().getFio().getFirstName());
-                head.setSecondName(value.getIndividualPerson().getFio().getSecondName());
-                head.setMiddleName(value.getIndividualPerson().getFio().getMiddleName());
+                head.setFio(value.getIndividualPerson().getFio());
             }
         }
         head.setPosition(value.getPosition());

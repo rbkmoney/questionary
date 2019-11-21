@@ -203,6 +203,8 @@ public class QuestionaryParamsConverter implements ThriftConverter<QuestionaryPa
                         ctx.fill(questionary, russianLegalEntity.getPropertyInfoDocumentType());
                     }
 
+                    questionary.setHasBeneficialOwners(russianLegalEntity.isHasBeneficialOwners());
+
                     final LegalEntityQuestionaryHolder legalEntityQuestionaryHolder =
                             ctx.convert(russianLegalEntity, LegalEntityQuestionaryHolder.class);
                     legalEntityQuestionaryHolder.setQuestionary(questionary);

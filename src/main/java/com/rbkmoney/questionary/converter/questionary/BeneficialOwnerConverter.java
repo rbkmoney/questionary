@@ -65,8 +65,7 @@ public class BeneficialOwnerConverter implements ThriftConverter<BeneficialOwner
 
         final IdentityDocument identityDocument = new IdentityDocument();
         RussianDomesticPassport russianDomesticPassport = new RussianDomesticPassport();
-        russianDomesticPassport.setSeries(value.getIdentityDocSeries());
-        russianDomesticPassport.setNumber(value.getIdentityDocNumber());
+        russianDomesticPassport.setSeriesNumber(value.getIdentityDocSeriesNumber());
         if (value.getIdentityDocIssuedAt() != null) {
             russianDomesticPassport.setIssuedAt(TypeUtil.temporalToString(value.getIdentityDocIssuedAt()));
         }
@@ -89,11 +88,7 @@ public class BeneficialOwnerConverter implements ThriftConverter<BeneficialOwner
         contactInfo.setPhoneNumber(value.getPrivateEntityPhoneNumber());
         ThriftUtil.setIfNotEmpty(contactInfo, russianPrivateEntity::setContactInfo);
 
-        final PersonAnthroponym personAnthroponym = new PersonAnthroponym();
-        personAnthroponym.setFirstName(value.getPrivateEntityFirstName());
-        personAnthroponym.setSecondName(value.getPrivateEntitySecondName());
-        personAnthroponym.setMiddleName(value.getPrivateEntityMiddleName());
-        ThriftUtil.setIfNotEmpty(personAnthroponym, russianPrivateEntity::setFio);
+        russianPrivateEntity.setFio(value.getPrivateEntityFio());
 
         beneficialOwner.setRussianPrivateEntity(russianPrivateEntity);
 
@@ -147,16 +142,13 @@ public class BeneficialOwnerConverter implements ThriftConverter<BeneficialOwner
                 beneficialOwner.setIdentityDocIssuedAt(TypeUtil.stringToLocalDateTime(russianPassport.getIssuedAt()));
                 beneficialOwner.setIdentityDocIssuer(russianPassport.getIssuer());
                 beneficialOwner.setIdentityDocIssuerCode(russianPassport.getIssuerCode());
-                beneficialOwner.setIdentityDocNumber(russianPassport.getNumber());
-                beneficialOwner.setIdentityDocSeries(russianPassport.getSeries());
+                beneficialOwner.setIdentityDocSeriesNumber(russianPassport.getSeriesNumber());
             }
         }
 
         if (value.isSetRussianPrivateEntity()) {
             if (value.getRussianPrivateEntity().isSetFio()) {
-                beneficialOwner.setPrivateEntityFirstName(value.getRussianPrivateEntity().getFio().getFirstName());
-                beneficialOwner.setPrivateEntitySecondName(value.getRussianPrivateEntity().getFio().getSecondName());
-                beneficialOwner.setPrivateEntityMiddleName(value.getRussianPrivateEntity().getFio().getMiddleName());
+                beneficialOwner.setPrivateEntityFio(value.getRussianPrivateEntity().getFio());
             }
             if (value.getRussianPrivateEntity().isSetContactInfo()) {
                 beneficialOwner.setPrivateEntityEmail(value.getRussianPrivateEntity().getContactInfo().getEmail());

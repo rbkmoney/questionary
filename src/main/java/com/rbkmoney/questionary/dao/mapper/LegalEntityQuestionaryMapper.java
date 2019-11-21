@@ -66,11 +66,7 @@ public class LegalEntityQuestionaryMapper implements RowMapper<LegalEntity> {
         final FoundersInfo foundersInfo = new FoundersInfo();
         final Head legalOwner = new Head();
         final IndividualPerson loIndividualPerson = new IndividualPerson();
-        final PersonAnthroponym loPersonAnthroponym = new PersonAnthroponym();
-        loPersonAnthroponym.setFirstName(rs.getString(LEGAL_ENTITY_QUESTIONARY.FOUNDER_OWNER_FIRST_NAME.getName()));
-        loPersonAnthroponym.setSecondName(rs.getString(LEGAL_ENTITY_QUESTIONARY.FOUNDER_OWNER_SECOND_NAME.getName()));
-        loPersonAnthroponym.setMiddleName(rs.getString(LEGAL_ENTITY_QUESTIONARY.FOUNDER_OWNER_MIDDLE_NAME.getName()));
-        loIndividualPerson.setFio(loPersonAnthroponym);
+        loIndividualPerson.setFio(rs.getString(LEGAL_ENTITY_QUESTIONARY.FOUNDER_OWNER_FIO.getName()));
         loIndividualPerson.setInn(rs.getString(LEGAL_ENTITY_QUESTIONARY.FOUNDER_OWNER_INN.getName()));
         legalOwner.setIndividualPerson(loIndividualPerson);
         legalOwner.setPosition(rs.getString(LEGAL_ENTITY_QUESTIONARY.FOUNDER_OWNER_POSITION.getName()));

@@ -43,11 +43,7 @@ public class IndividualEntityQuestionaryMapper implements RowMapper<IndividualEn
         russianIndividualEntity.setRegistrationInfo(RegistrationInfo.individual_registration_info(individualRegistrationInfo));
 
         final RussianPrivateEntity russianPrivateEntity = new RussianPrivateEntity();
-        final PersonAnthroponym personAnthroponym = new PersonAnthroponym();
-        personAnthroponym.setFirstName(rs.getString(INDIVIDUAL_ENTITY_QUESTIONARY.PRIVATE_ENTITY_FIRST_NAME.getName()));
-        personAnthroponym.setSecondName(rs.getString(INDIVIDUAL_ENTITY_QUESTIONARY.PRIVATE_ENTITY_SECOND_NAME.getName()));
-        personAnthroponym.setMiddleName(rs.getString(INDIVIDUAL_ENTITY_QUESTIONARY.PRIVATE_ENTITY_MIDDLE_NAME.getName()));
-        russianPrivateEntity.setFio(personAnthroponym);
+        russianPrivateEntity.setFio(rs.getString(INDIVIDUAL_ENTITY_QUESTIONARY.PRIVATE_ENTITY_FIO.getName()));
         final ContactInfo contactInfo = new ContactInfo();
         contactInfo.setPhoneNumber(rs.getString(INDIVIDUAL_ENTITY_QUESTIONARY.PRIVATE_ENTITY_PHONE_NUMBER.getName()));
         contactInfo.setEmail(rs.getString(INDIVIDUAL_ENTITY_QUESTIONARY.PRIVATE_ENTITY_EMAIL.getName()));
@@ -85,8 +81,7 @@ public class IndividualEntityQuestionaryMapper implements RowMapper<IndividualEn
         russianDomesticPassport.setIssuerCode(rs.getString(INDIVIDUAL_ENTITY_QUESTIONARY.IDENTITY_DOC_ISSUER_CODE.getName()));
         russianDomesticPassport.setIssuer(rs.getString(INDIVIDUAL_ENTITY_QUESTIONARY.IDENTITY_DOC_ISSUER.getName()));
         russianDomesticPassport.setIssuedAt(rs.getString(INDIVIDUAL_ENTITY_QUESTIONARY.IDENTITY_DOC_ISSUED_AT.getName()));
-        russianDomesticPassport.setNumber(rs.getString(INDIVIDUAL_ENTITY_QUESTIONARY.IDENTITY_DOC_NUMBER.getName()));
-        russianDomesticPassport.setSeries(rs.getString(INDIVIDUAL_ENTITY_QUESTIONARY.IDENTITY_DOC_SERIES.getName()));
+        russianDomesticPassport.setSeriesNumber(rs.getString(INDIVIDUAL_ENTITY_QUESTIONARY.IDENTITY_DOC_SERIES_NUMBER.getName()));
         identityDocument.setRussianDomesticPassword(russianDomesticPassport);
         russianIndividualEntity.setIdentityDocument(identityDocument);
 
