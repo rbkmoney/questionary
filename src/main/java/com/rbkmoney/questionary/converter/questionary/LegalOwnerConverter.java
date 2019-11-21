@@ -114,7 +114,9 @@ public class LegalOwnerConverter implements ThriftConverter<LegalOwnerInfo, Lega
             if (value.getIdentityDocument().isSetRussianDomesticPassword()) {
                 RussianDomesticPassport russianPassport = value.getIdentityDocument().getRussianDomesticPassword();
                 legalOwner.setIdentityDocType(IdentityDocumentType.russian_passport);
-                legalOwner.setIdentityDocIssuedAt(TypeUtil.stringToLocalDateTime(russianPassport.getIssuedAt()));
+                if (russianPassport.isSetIssuedAt()) {
+                    legalOwner.setIdentityDocIssuedAt(TypeUtil.stringToLocalDateTime(russianPassport.getIssuedAt()));
+                }
                 legalOwner.setIdentityDocIssuer(russianPassport.getIssuer());
                 legalOwner.setIdentityDocIssuerCode(russianPassport.getIssuerCode());
                 legalOwner.setIdentityDocSeriesNumber(russianPassport.getSeriesNumber());
