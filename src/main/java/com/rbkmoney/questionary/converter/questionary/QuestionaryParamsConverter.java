@@ -113,8 +113,8 @@ public class QuestionaryParamsConverter implements ThriftConverter<QuestionaryPa
                 IndividualEntity individualEntity = value.getData().getContractor().getIndividualEntity();
                 if (individualEntity.isSetRussianIndividualEntity()) {
                     final RussianIndividualEntity russianIndividualEntity = individualEntity.getRussianIndividualEntity();
-
                     questionary.setInn(russianIndividualEntity.getInn());
+                    questionary.setHasBeneficialOwners(russianIndividualEntity.isHasBeneficialOwners());
                     if (russianIndividualEntity.isSetLicenseInfo()) {
                         questionary.setLicenseOfficialNum(russianIndividualEntity.getLicenseInfo().getOfficialNum());
                         questionary.setLicenseIssuerName(russianIndividualEntity.getLicenseInfo().getIssuerName());
@@ -166,6 +166,7 @@ public class QuestionaryParamsConverter implements ThriftConverter<QuestionaryPa
                 if (legalEntity.isSetRussianLegalEntity()) {
                     final RussianLegalEntity russianLegalEntity = legalEntity.getRussianLegalEntity();
                     questionary.setInn(russianLegalEntity.getInn());
+                    questionary.setHasBeneficialOwners(russianLegalEntity.isHasBeneficialOwners());
                     if (russianLegalEntity.isSetRegistrationInfo() &&
                             russianLegalEntity.getRegistrationInfo().isSetLegalRegistrationInfo()) {
                         String registrationDate = russianLegalEntity.getRegistrationInfo().getLegalRegistrationInfo().getRegistrationDate();

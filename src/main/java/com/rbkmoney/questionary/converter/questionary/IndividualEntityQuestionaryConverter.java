@@ -27,7 +27,7 @@ public class IndividualEntityQuestionaryConverter implements ThriftConverter<Rus
         russianIndividualEntity.setInn(value.getQuestionary().getInn());
         russianIndividualEntity.setPdlCategory(value.getIndividualEntityQuestionary().getPdlCategory());
         russianIndividualEntity.setPdlRelationDegree(value.getIndividualEntityQuestionary().getPdlRelationDegree());
-        russianIndividualEntity.setHasBeneficialOwners(value.getIndividualEntityQuestionary().getBeneficialOwner());
+        russianIndividualEntity.setHasBeneficialOwners(value.getQuestionary().getHasBeneficialOwners());
 
         final Activity activity = ctx.convert(value.getQuestionary(), Activity.class);
 
@@ -138,7 +138,6 @@ public class IndividualEntityQuestionaryConverter implements ThriftConverter<Rus
         final IndividualEntityQuestionary individualEntityQuestionary = new IndividualEntityQuestionary();
         individualEntityQuestionary.setPdlCategory(value.isPdlCategory());
         individualEntityQuestionary.setPdlRelationDegree(value.getPdlRelationDegree());
-        individualEntityQuestionary.setBeneficialOwner(value.isHasBeneficialOwners());
         if (value.getIndividualPersonCategories() != null) {
             individualEntityQuestionary.setForeignPublicPerson(value.getIndividualPersonCategories().isForeignPublicPerson());
             individualEntityQuestionary.setForeignRelativePerson(value.getIndividualPersonCategories().isForeignRelativePerson());
@@ -185,7 +184,6 @@ public class IndividualEntityQuestionaryConverter implements ThriftConverter<Rus
             individualEntityQuestionary.setResidenceApproveName(value.getResidenceApprove().getName());
             individualEntityQuestionary.setResidenceApproveNumber(value.getResidenceApprove().getNumber());
             individualEntityQuestionary.setResidenceApproveSeries(value.getResidenceApprove().getSeries());
-            ;
         }
         if (value.isSetMigrationCardInfo()) {
             if (value.getMigrationCardInfo().isSetBeginningDate()) {
