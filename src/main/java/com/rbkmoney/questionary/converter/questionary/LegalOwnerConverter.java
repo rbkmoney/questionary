@@ -142,7 +142,9 @@ public class LegalOwnerConverter implements ThriftConverter<LegalOwnerInfo, Lega
         }
 
         if (value.getAuthorityConfirmingDocument() != null) {
-            legalOwner.setAuthorityConfirmDocDate(TypeUtil.stringToLocalDateTime(value.getAuthorityConfirmingDocument().getDate()));
+            if (value.getAuthorityConfirmingDocument().isSetDate()) {
+                legalOwner.setAuthorityConfirmDocDate(TypeUtil.stringToLocalDateTime(value.getAuthorityConfirmingDocument().getDate()));
+            }
             legalOwner.setAuthorityConfirmDocNumber(value.getAuthorityConfirmingDocument().getNumber());
             legalOwner.setAuthorityConfirmDocType(value.getAuthorityConfirmingDocument().getType());
         }
