@@ -139,7 +139,9 @@ public class BeneficialOwnerConverter implements ThriftConverter<BeneficialOwner
             if (value.getIdentityDocument().isSetRussianDomesticPassword()) {
                 RussianDomesticPassport russianPassport = value.getIdentityDocument().getRussianDomesticPassword();
                 beneficialOwner.setIdentityDocType(IdentityDocumentType.russian_passport);
-                beneficialOwner.setIdentityDocIssuedAt(TypeUtil.stringToLocalDateTime(russianPassport.getIssuedAt()));
+                if (russianPassport.isSetIssuedAt()) {
+                    beneficialOwner.setIdentityDocIssuedAt(TypeUtil.stringToLocalDateTime(russianPassport.getIssuedAt()));
+                }
                 beneficialOwner.setIdentityDocIssuer(russianPassport.getIssuer());
                 beneficialOwner.setIdentityDocIssuerCode(russianPassport.getIssuerCode());
                 beneficialOwner.setIdentityDocSeriesNumber(russianPassport.getSeriesNumber());

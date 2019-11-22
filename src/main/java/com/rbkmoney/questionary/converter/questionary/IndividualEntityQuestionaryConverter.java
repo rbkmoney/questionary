@@ -198,7 +198,9 @@ public class IndividualEntityQuestionaryConverter implements ThriftConverter<Rus
             if (value.getIdentityDocument().isSetRussianDomesticPassword()) {
                 RussianDomesticPassport russianPassport = value.getIdentityDocument().getRussianDomesticPassword();
                 individualEntityQuestionary.setIdentityDocType(IdentityDocumentType.russian_passport);
-                individualEntityQuestionary.setIdentityDocIssuedAt(TypeUtil.stringToLocalDateTime(russianPassport.getIssuedAt()));
+                if (russianPassport.isSetIssuedAt()) {
+                    individualEntityQuestionary.setIdentityDocIssuedAt(TypeUtil.stringToLocalDateTime(russianPassport.getIssuedAt()));
+                }
                 individualEntityQuestionary.setIdentityDocIssuer(russianPassport.getIssuer());
                 individualEntityQuestionary.setIdentityDocIssuerCode(russianPassport.getIssuerCode());
                 individualEntityQuestionary.setIdentityDocSeriesNumber(russianPassport.getSeriesNumber());
