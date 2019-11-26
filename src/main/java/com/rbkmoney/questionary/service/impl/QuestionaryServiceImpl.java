@@ -51,17 +51,16 @@ public class QuestionaryServiceImpl implements QuestionaryService {
             log.info("Save questionary: id={}, ownerId={}, version={}",
                     questionaryParams.getId(), questionaryParams.getOwnerId(), questionary.getVersion());
             final Long questionaryId = questionaryDao.saveQuestionary(questionary);
-            log.info("QuestionaryId={}", questionaryId);
             if (questionaryHolder.getLegalEntityQuestionaryHolder() != null) {
                 // Save legal entity questionary
                 final LegalEntityQuestionaryHolder legalEntityQuestionaryHolder = questionaryHolder.getLegalEntityQuestionaryHolder();
-                log.info("Save legal questionary: id={}", questionaryId);
+                log.info("Save legal questionary: id={}", questionaryParams.getId());
                 saveLegalEntityQuestionary(questionaryId, legalEntityQuestionaryHolder);
             } else if (questionaryHolder.getIndividualEntityQuestionaryHolder() != null) {
                 // Save individual entity questionary
                 final IndividualEntityQuestionaryHolder individualEntityQuestionaryHolder = questionaryHolder
                         .getIndividualEntityQuestionaryHolder();
-                log.info("Save individual entity questionary: id={}", questionaryId);
+                log.info("Save individual entity questionary: id={}", questionaryParams.getId());
                 saveIndividualEntityQuestionary(questionaryId, individualEntityQuestionaryHolder);
             }
         } catch (DaoException ex) {
@@ -137,7 +136,7 @@ public class QuestionaryServiceImpl implements QuestionaryService {
 
         // Save legal entity
         legalEntityQuestionary.setId(questionaryId);
-        final Long legaEntityQuestionaryId = questionaryDao.saveLegalEntity(legalEntityQuestionary);
+        questionaryDao.saveLegalEntity(legalEntityQuestionary);
 
         if (legalEntityQuestionaryHolder.getHeadList() != null) {
             final List<com.rbkmoney.questionary.domain.tables.pojos.Head> headList = legalEntityQuestionaryHolder.getHeadList().stream()

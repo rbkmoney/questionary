@@ -74,6 +74,10 @@ public class TestData {
         licenseInfo.setEffectiveDate(TypeUtil.temporalToString(LocalDateTime.now().plus(1, ChronoUnit.HOURS)));
         licenseInfo.setExpirationDate(TypeUtil.temporalToString(LocalDateTime.now().plus(2, ChronoUnit.HOURS)));
         russianIndividualEntity.setLicenseInfo(licenseInfo);
+        russianIndividualEntity.setPdlRelationDegree("test_pdl_relation_degree");
+        russianIndividualEntity.setPdlCategory(true);
+        russianIndividualEntity.setHasBeneficialOwners(true);
+        russianIndividualEntity.setName("test name");
 
         final ResidencyInfo residencyInfo = new ResidencyInfo();
         final IndividualResidencyInfo individualResidencyInfo = new IndividualResidencyInfo();
@@ -87,8 +91,7 @@ public class TestData {
 
         final RussianPrivateEntity privateEntity = EnhancedRandom.random(RussianPrivateEntity.class);
         privateEntity.setBirthDate(TypeUtil.temporalToString(LocalDateTime.now()));
-        final PersonAnthroponym personAnthroponym = EnhancedRandom.random(PersonAnthroponym.class);
-        privateEntity.setFio(personAnthroponym);
+        privateEntity.setFio("Just another FIO");
         russianIndividualEntity.setRussianPrivateEntity(privateEntity);
 
         russianIndividualEntity.setPropertyInfoDocumentType(PropertyInfoDocumentType.lease_contract(new LeaseContract()));
@@ -106,6 +109,7 @@ public class TestData {
         final RegistrationInfo registrationInfo = new RegistrationInfo();
         IndividualRegistrationInfo individualRegistrationInfo = EnhancedRandom.random(IndividualRegistrationInfo.class);
         individualRegistrationInfo.setRegistrationDate(TypeUtil.temporalToString(LocalDateTime.now()));
+        individualRegistrationInfo.setRegistrationPlace("test reg place individual");
         registrationInfo.setIndividualRegistrationInfo(individualRegistrationInfo);
         russianIndividualEntity.setRegistrationInfo(registrationInfo);
 
@@ -225,9 +229,7 @@ public class TestData {
         beneficialOwner.getMigrationCardInfo().setExpirationDate(TypeUtil.temporalToString(LocalDateTime.now()));
         beneficialOwner.getIdentityDocument().getRussianDomesticPassword().setIssuedAt(TypeUtil.temporalToString(LocalDateTime.now()));
         final RussianPrivateEntity beneficialPrivateEntity = new RussianPrivateEntity();
-        PersonAnthroponym personAnthroponym = new PersonAnthroponym();
-        personAnthroponym = new MockTBaseProcessor(MockMode.ALL).process(personAnthroponym, new TBaseHandler<>(PersonAnthroponym.class));
-        beneficialPrivateEntity.setFio(personAnthroponym);
+        beneficialPrivateEntity.setFio("Test FIO");
         beneficialPrivateEntity.setContactInfo(EnhancedRandom.random(ContactInfo.class));
         beneficialOwner.setRussianPrivateEntity(beneficialPrivateEntity);
         beneficialOwner.setPdlCategory(false);
@@ -236,6 +238,7 @@ public class TestData {
         final RegistrationInfo registrationInfo = new RegistrationInfo();
         LegalRegistrationInfo legalRegistrationInfo = EnhancedRandom.random(LegalRegistrationInfo.class);
         legalRegistrationInfo.setRegistrationDate(TypeUtil.temporalToString(LocalDateTime.now()));
+        legalRegistrationInfo.setRegistrationPlace("test reg place legal");
         registrationInfo.setLegalRegistrationInfo(legalRegistrationInfo);
         russianLegalEntity.setRegistrationInfo(registrationInfo);
 

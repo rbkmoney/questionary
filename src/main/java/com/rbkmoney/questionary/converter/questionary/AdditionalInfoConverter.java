@@ -47,6 +47,8 @@ public class AdditionalInfoConverter implements ThriftConverter<AdditionalInfo, 
             additionalInfo.setNKORelationTarget(value.getAdditionalInfo().getNkoRelationTarget());
             additionalInfo.setStaffCount(value.getAdditionalInfo().getStaffCount());
             additionalInfo.setBenefitThirdParties(value.getAdditionalInfo().getBenefitThirdParties());
+            additionalInfo.setHasBeneficiary(value.getAdditionalInfo().getHasBeneficiary());
+            additionalInfo.setHasLiquidationProcess(value.getAdditionalInfo().getHasLiquidationProcess());
 
             AccountantInfo accountantInfo = ctx.convert(value.getAdditionalInfo(), AccountantInfo.class);
             ThriftUtil.setIfNotEmpty(accountantInfo, additionalInfo::setAccountantInfo);
@@ -101,6 +103,8 @@ public class AdditionalInfoConverter implements ThriftConverter<AdditionalInfo, 
         additionalInfo.setNkoRelationTarget(value.getNKORelationTarget());
         additionalInfo.setRelationshipWithNko(value.getRelationshipWithNKO());
         additionalInfo.setCounterparties(value.getMainCounterparties());
+        additionalInfo.setHasBeneficiary(value.isHasBeneficiary());
+        additionalInfo.setHasLiquidationProcess(value.isHasLiquidationProcess());
 
         List<com.rbkmoney.questionary.domain.tables.pojos.BusinessInfo> businessInfoList = null;
         if (value.isSetBusinessInfo()) {

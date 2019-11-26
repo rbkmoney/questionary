@@ -81,11 +81,7 @@ public class LegalEntityQuestionaryConverter implements ThriftConverter<RussianL
         final Head head = new Head();
         final IndividualPerson individualPerson = new IndividualPerson();
         individualPerson.setInn(value.getLegalEntityQuestionary().getFounderOwnerInn());
-        final PersonAnthroponym personAnthroponym = new PersonAnthroponym();
-        personAnthroponym.setFirstName(value.getLegalEntityQuestionary().getFounderOwnerFirstName());
-        personAnthroponym.setSecondName(value.getLegalEntityQuestionary().getFounderOwnerSecondName());
-        personAnthroponym.setMiddleName(value.getLegalEntityQuestionary().getFounderOwnerMiddleName());
-        ThriftUtil.setIfNotEmpty(personAnthroponym, individualPerson::setFio);
+        individualPerson.setFio(value.getLegalEntityQuestionary().getFounderOwnerFio());
         ThriftUtil.setIfNotEmpty(individualPerson, head::setIndividualPerson);
         head.setPosition(value.getLegalEntityQuestionary().getFounderOwnerPosition());
         ThriftUtil.setIfNotEmpty(head, foundersInfo::setLegalOwner);
@@ -145,9 +141,7 @@ public class LegalEntityQuestionaryConverter implements ThriftConverter<RussianL
         if (value.isSetFoundersInfo() && value.getFoundersInfo().isSetLegalOwner()) {
             legalEntityQuestionary.setFounderOwnerPosition(value.getFoundersInfo().getLegalOwner().getPosition());
             legalEntityQuestionary.setFounderOwnerInn(value.getFoundersInfo().getLegalOwner().getIndividualPerson().getInn());
-            legalEntityQuestionary.setFounderOwnerFirstName(value.getFoundersInfo().getLegalOwner().getIndividualPerson().getFio().getFirstName());
-            legalEntityQuestionary.setFounderOwnerSecondName(value.getFoundersInfo().getLegalOwner().getIndividualPerson().getFio().getSecondName());
-            legalEntityQuestionary.setFounderOwnerMiddleName(value.getFoundersInfo().getLegalOwner().getIndividualPerson().getFio().getMiddleName());
+            legalEntityQuestionary.setFounderOwnerFio(value.getFoundersInfo().getLegalOwner().getIndividualPerson().getFio());
         }
         legalEntityQuestionary.setLegalForm(value.getLegalForm());
         if (value.isSetRegistrationInfo() && value.getRegistrationInfo().isSetLegalRegistrationInfo()) {
@@ -184,10 +178,8 @@ public class LegalEntityQuestionaryConverter implements ThriftConverter<RussianL
                 if (legalOwner.isSetIndividualPerson()) {
                     legalEntityQuestionary.setFounderOwnerInn(legalOwner.getIndividualPerson().getInn());
                     if (legalOwner.getIndividualPerson().isSetFio()) {
-                        final PersonAnthroponym personAnthroponym = legalOwner.getIndividualPerson().getFio();
-                        legalEntityQuestionary.setFounderOwnerFirstName(personAnthroponym.getFirstName());
-                        legalEntityQuestionary.setFounderOwnerSecondName(personAnthroponym.getSecondName());
-                        legalEntityQuestionary.setFounderOwnerPosition(personAnthroponym.getMiddleName());
+                        legalEntityQuestionary.setFounderOwnerPosition(legalOwner.getPosition());
+                        legalEntityQuestionary.setFounderOwnerFio(legalOwner.getIndividualPerson().getFio());
                     }
                 }
                 legalEntityQuestionary.setFounderOwnerPosition(legalOwner.getPosition());

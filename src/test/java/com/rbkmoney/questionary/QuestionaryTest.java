@@ -127,10 +127,18 @@ public class QuestionaryTest extends AbstractIntegrationTest {
 
         RussianIndividualEntity expectedRussianIndividualEntity = data.getContractor().getIndividualEntity().getRussianIndividualEntity();
         RussianIndividualEntity actualRussianIndividualEntity = questionaryData.getContractor().getIndividualEntity().getRussianIndividualEntity();
+        Assert.assertEquals("RussianIndividualEntity (name) not equals",
+                expectedRussianIndividualEntity.getName(), actualRussianIndividualEntity.getName());
         Assert.assertEquals("RussianIndividualEntity (inn) not equals",
                 expectedRussianIndividualEntity.getInn(), actualRussianIndividualEntity.getInn());
         Assert.assertEquals("RussianIndividualEntity (snils) not equals",
                 expectedRussianIndividualEntity.getSnils(), actualRussianIndividualEntity.getSnils());
+        Assert.assertEquals("RussianIndividualEntity (pdlCategory) not equals",
+                expectedRussianIndividualEntity.isPdlCategory(), actualRussianIndividualEntity.isPdlCategory());
+        Assert.assertEquals("RussianIndividualEntity (pdlRelationDegree) not equals",
+                expectedRussianIndividualEntity.getPdlRelationDegree(), actualRussianIndividualEntity.getPdlRelationDegree());
+        Assert.assertEquals("RussianIndividualEntity (hasBeneficialOwner) not equals",
+                expectedRussianIndividualEntity.isHasBeneficialOwners(), actualRussianIndividualEntity.isHasBeneficialOwners());
 
         compareLicenseInfo(expectedRussianIndividualEntity.getLicenseInfo(), actualRussianIndividualEntity.getLicenseInfo());
 
@@ -268,8 +276,8 @@ public class QuestionaryTest extends AbstractIntegrationTest {
         if (expectedFounder.isSetIndividualPersonFounder()) {
             Assert.assertEquals("IndividualPersonFounder (inn) not equals",
                     expectedFounder.getIndividualPersonFounder().getInn(), actualFounder.getIndividualPersonFounder().getInn());
-            comparePersonAnthroponym(expectedFounder.getIndividualPersonFounder().getFio(),
-                    actualFounder.getIndividualPersonFounder().getFio());
+            Assert.assertEquals("IndividualPersonFounder (fio) not equals",
+                    expectedFounder.getIndividualPersonFounder().getFio(), actualFounder.getIndividualPersonFounder().getFio());
         } else if (expectedFounder.isSetInternationalLegalEntityFounder()) {
             Assert.assertEquals("InternationalLegalEntityFounder (country) not equals",
                     expectedFounder.getInternationalLegalEntityFounder().getCountry(),
@@ -295,7 +303,8 @@ public class QuestionaryTest extends AbstractIntegrationTest {
                 expectedLegalOwner.getPosition(), actualLegalOwner.getPosition());
         Assert.assertEquals("LegalOwner (inn) not equals",
                 expectedLegalOwner.getIndividualPerson().getInn(), actualLegalOwner.getIndividualPerson().getInn());
-        comparePersonAnthroponym(expectedLegalOwner.getIndividualPerson().getFio(), actualLegalOwner.getIndividualPerson().getFio());
+        Assert.assertEquals("LegalOwner (fio) not equals",
+                expectedLegalOwner.getIndividualPerson().getFio(), actualLegalOwner.getIndividualPerson().getFio());
     }
 
     private void compareAdditionalInfo(AdditionalInfo expectedAdditionalInfo, AdditionalInfo actualAdditionalInfo) {
@@ -444,8 +453,8 @@ public class QuestionaryTest extends AbstractIntegrationTest {
                 actualRussianPrivateEntity.getCitizenship());
         compareContactInfo(expectedRussianPrivateEntity.getContactInfo(),
                 actualRussianPrivateEntity.getContactInfo());
-        comparePersonAnthroponym(expectedRussianPrivateEntity.getFio(),
-                actualRussianPrivateEntity.getFio());
+        Assert.assertEquals("PrivateEntity (fio) not equals",
+                expectedRussianPrivateEntity.getFio(), actualRussianPrivateEntity.getFio());
     }
 
     private void compareBeneficialOwner(BeneficialOwner expectedBeneficialOwner, BeneficialOwner actualBeneficialOwner) {
@@ -475,15 +484,6 @@ public class QuestionaryTest extends AbstractIntegrationTest {
                 actualContactInfo.getEmail());
         Assert.assertEquals("ContactInfo (phoneNumber) not equals", expectedContactInfo.getPhoneNumber(),
                 actualContactInfo.getPhoneNumber());
-    }
-
-    private void comparePersonAnthroponym(PersonAnthroponym expectedPersonAnthroponym, PersonAnthroponym actualPersonAnthroponym) {
-        Assert.assertEquals("PersonAnthroponym (firstName) not equals", expectedPersonAnthroponym.getFirstName(),
-                actualPersonAnthroponym.getFirstName());
-        Assert.assertEquals("PersonAnthroponym (secondName) not equals", expectedPersonAnthroponym.getSecondName(),
-                actualPersonAnthroponym.getSecondName());
-        Assert.assertEquals("PersonAnthroponym (middleName) not equals", expectedPersonAnthroponym.getMiddleName(),
-                actualPersonAnthroponym.getMiddleName());
     }
 
     private void compareRegistrationInfo(RegistrationInfo expectedRegistrationInfo, RegistrationInfo actualRegistrationInfo) {
@@ -556,12 +556,9 @@ public class QuestionaryTest extends AbstractIntegrationTest {
         Assert.assertEquals("IdentityDocument-RU (issuerCode) not equals",
                 expectedRussianDomesticPassport.getIssuerCode(),
                 actualRussianDomesticPassport.getIssuerCode());
-        Assert.assertEquals("IdentityDocument-RU (number) not equals",
-                expectedRussianDomesticPassport.getNumber(),
-                actualRussianDomesticPassport.getNumber());
-        Assert.assertEquals("IdentityDocument-RU (series) not equals",
-                expectedRussianDomesticPassport.getSeries(),
-                actualRussianDomesticPassport.getSeries());
+        Assert.assertEquals("IdentityDocument-RU (series-number) not equals",
+                expectedRussianDomesticPassport.getSeriesNumber(),
+                actualRussianDomesticPassport.getSeriesNumber());
     }
 
     private void compareResidenceApprove(ResidenceApprove expectedResidenceApprove,

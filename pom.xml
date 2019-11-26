@@ -67,9 +67,9 @@
         <dependency>
             <groupId>com.rbkmoney</groupId>
             <artifactId>ank-proto</artifactId>
-            <version>1.13-b10ca88</version>
+            <version>1.17-0d5b96b</version>
         </dependency>
-
+        
         <!--spring-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
