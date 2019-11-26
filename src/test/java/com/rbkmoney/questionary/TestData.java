@@ -77,6 +77,7 @@ public class TestData {
         russianIndividualEntity.setPdlRelationDegree("test_pdl_relation_degree");
         russianIndividualEntity.setPdlCategory(true);
         russianIndividualEntity.setHasBeneficialOwners(true);
+        russianIndividualEntity.setName("test name");
 
         final ResidencyInfo residencyInfo = new ResidencyInfo();
         final IndividualResidencyInfo individualResidencyInfo = new IndividualResidencyInfo();
@@ -108,6 +109,7 @@ public class TestData {
         final RegistrationInfo registrationInfo = new RegistrationInfo();
         IndividualRegistrationInfo individualRegistrationInfo = EnhancedRandom.random(IndividualRegistrationInfo.class);
         individualRegistrationInfo.setRegistrationDate(TypeUtil.temporalToString(LocalDateTime.now()));
+        individualRegistrationInfo.setRegistrationPlace("test reg place individual");
         registrationInfo.setIndividualRegistrationInfo(individualRegistrationInfo);
         russianIndividualEntity.setRegistrationInfo(registrationInfo);
 
@@ -236,6 +238,7 @@ public class TestData {
         final RegistrationInfo registrationInfo = new RegistrationInfo();
         LegalRegistrationInfo legalRegistrationInfo = EnhancedRandom.random(LegalRegistrationInfo.class);
         legalRegistrationInfo.setRegistrationDate(TypeUtil.temporalToString(LocalDateTime.now()));
+        legalRegistrationInfo.setRegistrationPlace("test reg place legal");
         registrationInfo.setLegalRegistrationInfo(legalRegistrationInfo);
         russianLegalEntity.setRegistrationInfo(registrationInfo);
 

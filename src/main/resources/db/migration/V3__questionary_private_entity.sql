@@ -29,6 +29,7 @@ ALTER TABLE qs.individual_entity_questionary
     DROP COLUMN IF EXISTS identity_doc_number;
 
 ALTER TABLE qs.individual_entity_questionary
+    ADD COLUMN name VARCHAR,
     ADD COLUMN private_entity_fio VARCHAR,
     ADD COLUMN identity_doc_series_number VARCHAR;
 

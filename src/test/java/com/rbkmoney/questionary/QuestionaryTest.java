@@ -127,6 +127,8 @@ public class QuestionaryTest extends AbstractIntegrationTest {
 
         RussianIndividualEntity expectedRussianIndividualEntity = data.getContractor().getIndividualEntity().getRussianIndividualEntity();
         RussianIndividualEntity actualRussianIndividualEntity = questionaryData.getContractor().getIndividualEntity().getRussianIndividualEntity();
+        Assert.assertEquals("RussianIndividualEntity (name) not equals",
+                expectedRussianIndividualEntity.getName(), actualRussianIndividualEntity.getName());
         Assert.assertEquals("RussianIndividualEntity (inn) not equals",
                 expectedRussianIndividualEntity.getInn(), actualRussianIndividualEntity.getInn());
         Assert.assertEquals("RussianIndividualEntity (snils) not equals",

@@ -24,6 +24,7 @@ public class IndividualEntityQuestionaryConverter implements ThriftConverter<Rus
     public RussianIndividualEntity toThrift(IndividualEntityQuestionaryHolder value, ThriftConverterContext ctx) {
         final RussianIndividualEntity russianIndividualEntity = new RussianIndividualEntity();
 
+        russianIndividualEntity.setName(value.getIndividualEntityQuestionary().getName());
         russianIndividualEntity.setInn(value.getQuestionary().getInn());
         russianIndividualEntity.setPdlCategory(value.getIndividualEntityQuestionary().getPdlCategory());
         russianIndividualEntity.setPdlRelationDegree(value.getIndividualEntityQuestionary().getPdlRelationDegree());
@@ -136,6 +137,7 @@ public class IndividualEntityQuestionaryConverter implements ThriftConverter<Rus
     @Override
     public IndividualEntityQuestionaryHolder toJooq(RussianIndividualEntity value, JooqConverterContext ctx) {
         final IndividualEntityQuestionary individualEntityQuestionary = new IndividualEntityQuestionary();
+        individualEntityQuestionary.setName(value.getName());
         individualEntityQuestionary.setPdlCategory(value.isPdlCategory());
         individualEntityQuestionary.setPdlRelationDegree(value.getPdlRelationDegree());
         if (value.getIndividualPersonCategories() != null) {

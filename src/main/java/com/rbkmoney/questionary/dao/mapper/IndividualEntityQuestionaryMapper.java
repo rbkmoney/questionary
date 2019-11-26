@@ -15,6 +15,7 @@ public class IndividualEntityQuestionaryMapper implements RowMapper<IndividualEn
     @Override
     public IndividualEntity mapRow(ResultSet rs, int rowNum) throws SQLException {
         final RussianIndividualEntity russianIndividualEntity = new RussianIndividualEntity();
+        russianIndividualEntity.setName(rs.getString(INDIVIDUAL_ENTITY_QUESTIONARY.NAME.getName()));
         russianIndividualEntity.setInn(rs.getString(QUESTIONARY.INN.getName()));
         russianIndividualEntity.setSnils(rs.getString(INDIVIDUAL_ENTITY_QUESTIONARY.SNILS.getName()));
 
