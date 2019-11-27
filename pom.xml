@@ -10,7 +10,7 @@
     </parent>
 
     <artifactId>questionary</artifactId>
-    <version>0.0.4-SNAPSHOT</version>
+    <version>0.0.5-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>Questionary</name>
@@ -69,7 +69,7 @@
             <artifactId>ank-proto</artifactId>
             <version>1.17-0d5b96b</version>
         </dependency>
-        
+
         <!--spring-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
