@@ -25,6 +25,7 @@ public class IndividualEntityQuestionaryConverter implements ThriftConverter<Rus
         final RussianIndividualEntity russianIndividualEntity = new RussianIndividualEntity();
 
         russianIndividualEntity.setName(value.getIndividualEntityQuestionary().getName());
+        russianIndividualEntity.setSnils(value.getIndividualEntityQuestionary().getSnils());
         russianIndividualEntity.setInn(value.getQuestionary().getInn());
         russianIndividualEntity.setPdlCategory(value.getIndividualEntityQuestionary().getPdlCategory());
         russianIndividualEntity.setPdlRelationDegree(value.getIndividualEntityQuestionary().getPdlRelationDegree());
@@ -118,7 +119,6 @@ public class IndividualEntityQuestionaryConverter implements ThriftConverter<Rus
             ThriftUtil.setIfNotEmpty(additionalInfo, russianIndividualEntity::setAdditionalInfo);
         }
 
-        russianIndividualEntity.setSnils(value.getIndividualEntityQuestionary().getSnils());
         if (value.getQuestionary().getPropertyInfoDocType() != null) {
             PropertyInfoDocumentType propertyInfoDocumentType = ctx.convert(value.getQuestionary(), PropertyInfoDocumentType.class);
             ThriftUtil.setIfNotEmpty(propertyInfoDocumentType, russianIndividualEntity::setPropertyInfoDocumentType);
@@ -138,6 +138,7 @@ public class IndividualEntityQuestionaryConverter implements ThriftConverter<Rus
     public IndividualEntityQuestionaryHolder toJooq(RussianIndividualEntity value, JooqConverterContext ctx) {
         final IndividualEntityQuestionary individualEntityQuestionary = new IndividualEntityQuestionary();
         individualEntityQuestionary.setName(value.getName());
+        individualEntityQuestionary.setSnils(value.getSnils());
         individualEntityQuestionary.setPdlCategory(value.isPdlCategory());
         individualEntityQuestionary.setPdlRelationDegree(value.getPdlRelationDegree());
         if (value.getIndividualPersonCategories() != null) {

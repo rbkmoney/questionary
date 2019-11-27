@@ -78,6 +78,7 @@ public class TestData {
         russianIndividualEntity.setPdlCategory(true);
         russianIndividualEntity.setHasBeneficialOwners(true);
         russianIndividualEntity.setName("test name");
+        russianIndividualEntity.setSnils("test snils");
 
         final ResidencyInfo residencyInfo = new ResidencyInfo();
         final IndividualResidencyInfo individualResidencyInfo = new IndividualResidencyInfo();
