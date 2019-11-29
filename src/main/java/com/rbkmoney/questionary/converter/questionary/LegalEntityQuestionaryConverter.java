@@ -27,6 +27,7 @@ public class LegalEntityQuestionaryConverter implements ThriftConverter<RussianL
         russianLegalEntity.setForeignName(value.getLegalEntityQuestionary().getForeignName());
         russianLegalEntity.setLegalForm(value.getLegalEntityQuestionary().getLegalForm());
         russianLegalEntity.setInn(value.getQuestionary().getInn());
+        russianLegalEntity.setHasBeneficialOwners(value.getQuestionary().getHasBeneficialOwners());
 
         final RegistrationInfo registrationInfo = new RegistrationInfo();
         final LegalRegistrationInfo legalRegistrationInfo = new LegalRegistrationInfo();

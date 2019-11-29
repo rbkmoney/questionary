@@ -174,6 +174,7 @@ public class TestData {
         residencyInfo.setLegalResidencyInfo(legalResidencyInfo);
         russianLegalEntity.setResidencyInfo(residencyInfo);
         russianLegalEntity.setPropertyInfoDocumentType(PropertyInfoDocumentType.certificate_of_ownership(new CertificateOfOwnership()));
+        russianLegalEntity.setHasBeneficialOwners(true);
 
         LegalOwnerInfo legalOwnerInfo = new LegalOwnerInfo();
         legalOwnerInfo = new MockTBaseProcessor(MockMode.ALL).process(legalOwnerInfo, new TBaseHandler<>(LegalOwnerInfo.class));

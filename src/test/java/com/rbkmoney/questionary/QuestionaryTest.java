@@ -206,6 +206,8 @@ public class QuestionaryTest extends AbstractIntegrationTest {
                 expectedLegalEntity.getPostalAddress(), actualLegalEntity.getPostalAddress());
         Assert.assertEquals("RussianLegalEntity (additionalSpace) not equals",
                 expectedLegalEntity.getAdditionalSpace(), actualLegalEntity.getAdditionalSpace());
+        Assert.assertEquals("RussianLegalEntity (hasBeneficialOwner) not equals",
+                expectedLegalEntity.isHasBeneficialOwners(), actualLegalEntity.isHasBeneficialOwners());
 
         compareFoundersInfo(expectedLegalEntity.getFoundersInfo(), actualLegalEntity.getFoundersInfo());
 
