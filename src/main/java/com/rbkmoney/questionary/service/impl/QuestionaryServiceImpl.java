@@ -4,9 +4,12 @@ import com.rbkmoney.dao.DaoException;
 import com.rbkmoney.questionary.converter.ConverterManager;
 import com.rbkmoney.questionary.dao.*;
 import com.rbkmoney.questionary.domain.enums.QuestionaryEntityType;
-import com.rbkmoney.questionary.domain.tables.pojos.Questionary;
 import com.rbkmoney.questionary.domain.tables.pojos.*;
-import com.rbkmoney.questionary.manage.*;
+import com.rbkmoney.questionary.exception.QuestionaryNotFoundException;
+import com.rbkmoney.questionary.exception.QuestionaryVersionConflictException;
+import com.rbkmoney.questionary.manage.QuestionaryParams;
+import com.rbkmoney.questionary.manage.Reference;
+import com.rbkmoney.questionary.manage.Snapshot;
 import com.rbkmoney.questionary.model.AdditionalInfoHolder;
 import com.rbkmoney.questionary.model.IndividualEntityQuestionaryHolder;
 import com.rbkmoney.questionary.model.LegalEntityQuestionaryHolder;
@@ -14,7 +17,6 @@ import com.rbkmoney.questionary.model.QuestionaryHolder;
 import com.rbkmoney.questionary.service.QuestionaryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.thrift.TException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,16 +42,15 @@ public class QuestionaryServiceImpl implements QuestionaryService {
     private final ConverterManager converterManager;
 
     @Override
-    public long saveQuestionary(QuestionaryParams questionaryParams, Long version) throws QuestionaryVersionConflict {
+    public long saveQuestionary(QuestionaryParams questionaryParams, Long version) {
         log.info("Converting thrift questionary to DB pojo");
         final QuestionaryHolder questionaryHolder = converterManager.convertFromThrift(questionaryParams, QuestionaryHolder.class);
         final Questionary questionary = questionaryHolder.getQuestionary();
         questionary.setVersion(++version);
 
-        // Save questionary
         try {
-            log.info("Save questionary: id={}, ownerId={}, version={}",
-                    questionaryParams.getId(), questionaryParams.getOwnerId(), questionary.getVersion());
+            // Save questionary
+            log.info("Save questionary: id={}, ownerId={}, version={}", questionaryParams.getId(), questionaryParams.getOwnerId(), questionary.getVersion());
             final Long questionaryId = questionaryDao.saveQuestionary(questionary);
             if (questionaryHolder.getLegalEntityQuestionaryHolder() != null) {
                 // Save legal entity questionary
@@ -65,7 +66,7 @@ public class QuestionaryServiceImpl implements QuestionaryService {
             }
         } catch (DaoException ex) {
             if (ex.getCause() instanceof DuplicateKeyException) {
-                throw new QuestionaryVersionConflict();
+                throw new QuestionaryVersionConflictException("Duplicate key", ex);
             }
             throw ex;
         }
@@ -74,7 +75,7 @@ public class QuestionaryServiceImpl implements QuestionaryService {
     }
 
     @Override
-    public Snapshot getQuestionary(String questionaryId, Reference reference) throws QuestionaryNotFound {
+    public Snapshot getQuestionary(String questionaryId, Reference reference) {
         Questionary questionary;
         if (reference.isSetHead()) {
             log.info("Get questionary head version. Questionary id={}", questionaryId);
@@ -85,8 +86,7 @@ public class QuestionaryServiceImpl implements QuestionaryService {
         }
 
         if (questionary == null) {
-            log.info("Questionary '{}' not found", questionaryId);
-            throw new QuestionaryNotFound();
+            throw new QuestionaryNotFoundException(String.format("Questionary '%s' not found", questionaryId));
         }
 
         QuestionaryHolder.QuestionaryHolderBuilder questionaryHolderBuilder = QuestionaryHolder.builder();
@@ -213,6 +213,4 @@ public class QuestionaryServiceImpl implements QuestionaryService {
                 .businessInfoList(businessInfoList)
                 .build();
     }
-
 }
-
