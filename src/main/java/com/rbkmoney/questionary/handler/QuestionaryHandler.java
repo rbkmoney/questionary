@@ -46,7 +46,7 @@ public class QuestionaryHandler implements QuestionaryManagerSrv.Iface {
     }
 
     private WUndefinedResultException undefinedResultException(Exception ex, String msg) {
-        log.warn(String.format("Error then '%s'", msg), ex);
+        log.warn("Error then '{}'", msg, ex);
         return new WUndefinedResultException(msg, ex);
     }
 }
