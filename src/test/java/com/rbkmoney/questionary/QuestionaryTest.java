@@ -1,23 +1,17 @@
 package com.rbkmoney.questionary;
 
-import com.rbkmoney.geck.common.util.TypeUtil;
-import com.rbkmoney.geck.serializer.kit.mock.MockMode;
-import com.rbkmoney.geck.serializer.kit.mock.MockTBaseProcessor;
-import com.rbkmoney.geck.serializer.kit.tbase.TBaseHandler;
+import com.rbkmoney.questionary.exception.QuestionaryVersionConflictException;
 import com.rbkmoney.questionary.manage.Head;
 import com.rbkmoney.questionary.manage.*;
 import com.rbkmoney.questionary.service.QuestionaryService;
-import io.github.benas.randombeans.api.EnhancedRandom;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.Collections;
 
-import static com.rbkmoney.questionary.TestData.*;
+import static com.rbkmoney.questionary.TestData.EntityType;
+import static com.rbkmoney.questionary.TestData.buildQuestionaryParams;
 
 public class QuestionaryTest extends AbstractIntegrationTest {
 
@@ -98,7 +92,7 @@ public class QuestionaryTest extends AbstractIntegrationTest {
         Assert.assertEquals(2L, secondQuestionaryVersion);
     }
 
-    @Test(expected = QuestionaryVersionConflict.class)
+    @Test(expected = QuestionaryVersionConflictException.class)
     public void questionaryDuplicateVersionTest() throws QuestionaryVersionConflict {
         final QuestionaryParams questionaryParams = new QuestionaryParams();
         questionaryParams.setId("87723261");

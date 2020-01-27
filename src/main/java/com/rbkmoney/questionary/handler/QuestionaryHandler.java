@@ -1,7 +1,11 @@
 package com.rbkmoney.questionary.handler;
 
+import com.rbkmoney.questionary.exception.QuestionaryNotFoundException;
+import com.rbkmoney.questionary.exception.QuestionaryNotValidException;
+import com.rbkmoney.questionary.exception.QuestionaryVersionConflictException;
 import com.rbkmoney.questionary.manage.*;
 import com.rbkmoney.questionary.service.QuestionaryService;
+import com.rbkmoney.woody.api.flow.error.WUndefinedResultException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TException;
 
@@ -15,22 +19,34 @@ public class QuestionaryHandler implements QuestionaryManagerSrv.Iface {
     }
 
     @Override
-    public long save(QuestionaryParams questionaryParams, long version)
-            throws QuestionaryNotFound, QuestionaryNotValidException, QuestionaryVersionConflict, TException {
-        log.info("Save questionary: id={}, version={}", questionaryParams.getId(), version);
+    public long save(QuestionaryParams questionaryParams, long version) throws QuestionaryNotValid, QuestionaryVersionConflict, TException {
         try {
-            final long latestVer = questionaryService.saveQuestionary(questionaryParams, version);
-            log.info("Questionary successfully saved: id={}", questionaryParams.getId());
-
-            return latestVer;
+            return questionaryService.saveQuestionary(questionaryParams, version);
+        } catch (QuestionaryNotValidException ex) {
+            log.warn("Questionary not valid, ownerId={}", questionaryParams.getOwnerId(), ex);
+            throw new QuestionaryNotValid();
+        } catch (QuestionaryVersionConflictException ex) {
+            log.warn("Questionary version conflict, version={}", version, ex);
+            throw new QuestionaryVersionConflict();
         } catch (Exception ex) {
-            log.error("Save questionary failed", ex);
-            throw new TException(ex);
+            throw undefinedResultException(ex, "save");
         }
     }
 
     @Override
     public Snapshot get(String questionaryId, Reference reference) throws QuestionaryNotFound, TException {
-        return questionaryService.getQuestionary(questionaryId, reference);
+        try {
+            return questionaryService.getQuestionary(questionaryId, reference);
+        } catch (QuestionaryNotFoundException ex) {
+            log.warn("Questionary not found, claimId={}", questionaryId, ex);
+            throw new QuestionaryNotFound();
+        } catch (Exception ex) {
+            throw undefinedResultException(ex, "get");
+        }
+    }
+
+    private WUndefinedResultException undefinedResultException(Exception ex, String msg) {
+        log.warn("Error then '{}'", msg, ex);
+        return new WUndefinedResultException(msg, ex);
     }
 }
