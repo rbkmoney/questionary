@@ -173,7 +173,7 @@ public class IndividualEntityQuestionaryConverter implements ThriftConverter<Rus
         if (value.isSetResidencyInfo()) {
             if (value.getResidencyInfo().isSetIndividualResidencyInfo()) {
                 individualEntityQuestionary.setUsaTaxResident(value.getResidencyInfo().getIndividualResidencyInfo().isUsaTaxResident());
-                individualEntityQuestionary.setExceptUsaTaxResident(value.getResidencyInfo().getIndividualResidencyInfo().isSetExceptUsaTaxResident());
+                individualEntityQuestionary.setExceptUsaTaxResident(value.getResidencyInfo().getIndividualResidencyInfo().isExceptUsaTaxResident());
             }
         }
 

@@ -82,8 +82,8 @@ public class TestData {
 
         final ResidencyInfo residencyInfo = new ResidencyInfo();
         final IndividualResidencyInfo individualResidencyInfo = new IndividualResidencyInfo();
-        individualResidencyInfo.setUsaTaxResident(false);
-        individualResidencyInfo.setExceptUsaTaxResident(true);
+        individualResidencyInfo.setUsaTaxResident(true);
+        individualResidencyInfo.setExceptUsaTaxResident(false);
         residencyInfo.setIndividualResidencyInfo(individualResidencyInfo);
         russianIndividualEntity.setResidencyInfo(residencyInfo);
 
