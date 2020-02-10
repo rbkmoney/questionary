@@ -4,8 +4,8 @@ import com.rbkmoney.questionary.manage.*;
 
 public interface QuestionaryService {
 
-    long saveQuestionary(QuestionaryParams questionaryParams, Long version) throws QuestionaryVersionConflict;
+    long saveQuestionary(QuestionaryParams questionaryParams, Long version);
 
-    Snapshot getQuestionary(String questionaryId, Reference reference) throws QuestionaryNotFound;
+    Snapshot getQuestionary(String questionaryId, Reference reference);
 
 }

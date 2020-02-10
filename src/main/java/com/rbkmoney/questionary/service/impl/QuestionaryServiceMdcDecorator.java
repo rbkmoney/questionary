@@ -15,7 +15,7 @@ public class QuestionaryServiceMdcDecorator implements QuestionaryService {
     private final QuestionaryService questionaryService;
 
     @Override
-    public long saveQuestionary(QuestionaryParams questionaryParams, Long version) throws QuestionaryVersionConflict {
+    public long saveQuestionary(QuestionaryParams questionaryParams, Long version) {
         try {
             MDC.put(QUESTIONARY_ID, questionaryParams.getId());
             return questionaryService.saveQuestionary(questionaryParams, version);
@@ -25,7 +25,7 @@ public class QuestionaryServiceMdcDecorator implements QuestionaryService {
     }
 
     @Override
-    public Snapshot getQuestionary(String questionaryId, Reference reference) throws QuestionaryNotFound {
+    public Snapshot getQuestionary(String questionaryId, Reference reference) {
         try {
             MDC.put(QUESTIONARY_ID, questionaryId);
             return questionaryService.getQuestionary(questionaryId, reference);

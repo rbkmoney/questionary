@@ -6,6 +6,8 @@ import com.rbkmoney.questionary.dao.*;
 import com.rbkmoney.questionary.domain.enums.QuestionaryEntityType;
 import com.rbkmoney.questionary.domain.tables.pojos.Questionary;
 import com.rbkmoney.questionary.domain.tables.pojos.*;
+import com.rbkmoney.questionary.exception.QuestionaryNotFoundException;
+import com.rbkmoney.questionary.exception.QuestionaryVersionConflictException;
 import com.rbkmoney.questionary.manage.*;
 import com.rbkmoney.questionary.model.AdditionalInfoHolder;
 import com.rbkmoney.questionary.model.IndividualEntityQuestionaryHolder;
@@ -39,7 +41,7 @@ public class QuestionaryServiceImpl implements QuestionaryService {
     private final ConverterManager converterManager;
 
     @Override
-    public long saveQuestionary(QuestionaryParams questionaryParams, Long version) throws QuestionaryVersionConflict {
+    public long saveQuestionary(QuestionaryParams questionaryParams, Long version) {
         log.info("Save questionary '{}' params: {}", questionaryParams.getId(), questionaryParams);
         final QuestionaryHolder questionaryHolder = converterManager.convertFromThrift(questionaryParams, QuestionaryHolder.class);
         log.info("Save questionary '{}' thrift object: {}", questionaryParams.getId(), questionaryHolder);
@@ -65,7 +67,7 @@ public class QuestionaryServiceImpl implements QuestionaryService {
             }
         } catch (DaoException ex) {
             if (ex.getCause() instanceof DuplicateKeyException) {
-                throw new QuestionaryVersionConflict();
+                throw new QuestionaryVersionConflictException();
             }
             throw ex;
         }
@@ -74,7 +76,7 @@ public class QuestionaryServiceImpl implements QuestionaryService {
     }
 
     @Override
-    public Snapshot getQuestionary(String questionaryId, Reference reference) throws QuestionaryNotFound {
+    public Snapshot getQuestionary(String questionaryId, Reference reference) {
         Questionary questionary;
         if (reference.isSetHead()) {
             log.info("Get questionary head version. Questionary id={}", questionaryId);
@@ -85,8 +87,7 @@ public class QuestionaryServiceImpl implements QuestionaryService {
         }
 
         if (questionary == null) {
-            log.info("Questionary '{}' not found", questionaryId);
-            throw new QuestionaryNotFound();
+            throw new QuestionaryNotFoundException(String.format("Questionary '%s' not found", questionaryId));
         }
 
         QuestionaryHolder.QuestionaryHolderBuilder questionaryHolderBuilder = QuestionaryHolder.builder();
