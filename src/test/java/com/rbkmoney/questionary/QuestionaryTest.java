@@ -92,7 +92,7 @@ public class QuestionaryTest extends AbstractIntegrationTest {
         Assert.assertEquals(2L, secondQuestionaryVersion);
     }
 
-    @Test(expected = QuestionaryVersionConflictException.class)
+    @Test(expected = QuestionaryVersionConflict.class)
     public void questionaryDuplicateVersionTest() throws QuestionaryVersionConflict {
         final QuestionaryParams questionaryParams = new QuestionaryParams();
         questionaryParams.setId("87723261");

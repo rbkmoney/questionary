@@ -8,8 +8,10 @@ import com.rbkmoney.questionary.service.QuestionaryService;
 import com.rbkmoney.woody.api.flow.error.WUndefinedResultException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.thrift.TException;
+import org.springframework.stereotype.Component;
 
 @Slf4j
+@Component
 public class QuestionaryHandler implements QuestionaryManagerSrv.Iface {
 
     private QuestionaryService questionaryService;

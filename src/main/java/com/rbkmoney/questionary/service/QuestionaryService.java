@@ -1,13 +1,11 @@
 package com.rbkmoney.questionary.service;
 
-import com.rbkmoney.questionary.manage.QuestionaryParams;
-import com.rbkmoney.questionary.manage.Reference;
-import com.rbkmoney.questionary.manage.Snapshot;
+import com.rbkmoney.questionary.manage.*;
 
 public interface QuestionaryService {
 
-    long saveQuestionary(QuestionaryParams questionaryParams, Long version);
+    long saveQuestionary(QuestionaryParams questionaryParams, Long version) throws QuestionaryVersionConflict;
 
-    Snapshot getQuestionary(String questionaryId, Reference reference);
+    Snapshot getQuestionary(String questionaryId, Reference reference) throws QuestionaryNotFound;
 
 }
