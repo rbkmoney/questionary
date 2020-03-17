@@ -36,9 +36,9 @@ public class QuestionaryHandler implements QuestionaryManagerSrv.Iface {
     }
 
     @Override
-    public Snapshot get(String questionaryId, Reference reference) throws QuestionaryNotFound, TException {
+    public Snapshot get(String questionaryId, String partyId, Reference reference) throws QuestionaryNotFound, TException {
         try {
-            return questionaryService.getQuestionary(questionaryId, reference);
+            return questionaryService.getQuestionary(questionaryId, partyId, reference);
         } catch (QuestionaryNotFoundException ex) {
             log.warn("Questionary not found, claimId={}", questionaryId, ex);
             throw new QuestionaryNotFound();

@@ -48,7 +48,8 @@ public class QuestionaryDaoImplTest extends AbstractIntegrationTest {
         questionaryDao.saveQuestionary(questionary);
         questionary.setVersion(expectedVersion);
         questionaryDao.saveQuestionary(questionary);
-        Questionary questionary = questionaryDao.getLatestQuestionary(this.questionary.getQuestionaryId());
+        Questionary questionary = questionaryDao.getLatestQuestionary(
+                this.questionary.getQuestionaryId(), this.questionary.getPartyId());
 
         assertEquals(expectedVersion, questionary.getVersion());
     }
@@ -57,7 +58,8 @@ public class QuestionaryDaoImplTest extends AbstractIntegrationTest {
     public void getQuestionaryByIdAndVersionTest() {
         Long id = questionaryDao.saveQuestionary(questionary);
         questionary.setId(id);
-        assertEquals(questionary, questionaryDao.getQuestionaryByIdAndVersion(questionary.getQuestionaryId(), questionary.getVersion()));
+        assertEquals(questionary, questionaryDao.getQuestionaryByIdAndPartyId(
+                questionary.getQuestionaryId(), questionary.getPartyId(), questionary.getVersion()));
     }
 
     @Test

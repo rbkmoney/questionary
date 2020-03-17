@@ -18,10 +18,15 @@ import java.util.Collections;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class TestData {
 
+    public static final String QUESTIONARY_ID = "54376457";
+
+    public static final String PARTY_ID = "12345";
+
     public static QuestionaryParams buildQuestionaryParams(EntityType entityType) throws IOException {
         final QuestionaryParams questionaryParams = new QuestionaryParams();
-        questionaryParams.setId("54376457");
+        questionaryParams.setId(QUESTIONARY_ID);
         questionaryParams.setOwnerId("64");
+        questionaryParams.setPartyId(PARTY_ID);
 
         final QuestionaryData questionaryData = new QuestionaryData();
         final ContactInfo contactInfo = new ContactInfo();

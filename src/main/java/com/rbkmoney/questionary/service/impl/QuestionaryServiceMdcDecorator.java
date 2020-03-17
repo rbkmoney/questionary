@@ -12,12 +12,15 @@ public class QuestionaryServiceMdcDecorator implements QuestionaryService {
 
     private static final String QUESTIONARY_ID = "questionary_id";
 
+    private static final String PARTY_ID = "party_id";
+
     private final QuestionaryService questionaryService;
 
     @Override
     public long saveQuestionary(QuestionaryParams questionaryParams, Long version) {
         try {
             MDC.put(QUESTIONARY_ID, questionaryParams.getId());
+            MDC.put(PARTY_ID, questionaryParams.getPartyId());
             return questionaryService.saveQuestionary(questionaryParams, version);
         } finally {
             MDC.clear();
@@ -25,10 +28,11 @@ public class QuestionaryServiceMdcDecorator implements QuestionaryService {
     }
 
     @Override
-    public Snapshot getQuestionary(String questionaryId, Reference reference) {
+    public Snapshot getQuestionary(String questionaryId, String partyId, Reference reference) {
         try {
             MDC.put(QUESTIONARY_ID, questionaryId);
-            return questionaryService.getQuestionary(questionaryId, reference);
+            MDC.put(PARTY_ID, partyId);
+            return questionaryService.getQuestionary(questionaryId, partyId, reference);
         } finally {
             MDC.clear();
         }
