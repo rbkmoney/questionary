@@ -6,6 +6,6 @@ public interface QuestionaryService {
 
     long saveQuestionary(QuestionaryParams questionaryParams, Long version);
 
-    Snapshot getQuestionary(String questionaryId, Reference reference);
+    Snapshot getQuestionary(String questionaryId, String partyId, Reference reference);
 
 }

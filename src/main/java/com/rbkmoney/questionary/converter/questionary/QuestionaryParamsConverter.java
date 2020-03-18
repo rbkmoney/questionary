@@ -26,6 +26,7 @@ public class QuestionaryParamsConverter implements ThriftConverter<QuestionaryPa
         final QuestionaryParams questionaryParams = new QuestionaryParams();
         questionaryParams.setId(value.getQuestionary().getQuestionaryId());
         questionaryParams.setOwnerId(value.getQuestionary().getOwnerId());
+        questionaryParams.setPartyId(value.getQuestionary().getPartyId());
 
         final QuestionaryData questionaryData = new QuestionaryData();
         ContactInfo contactInfo = new ContactInfo();
@@ -84,6 +85,7 @@ public class QuestionaryParamsConverter implements ThriftConverter<QuestionaryPa
         final Questionary questionary = new Questionary();
         questionary.setQuestionaryId(value.getId());
         questionary.setOwnerId(value.getOwnerId());
+        questionary.setPartyId(value.getPartyId());
         if (value.getData().isSetContactInfo()) {
             questionary.setPhoneNumber(value.getData().getContactInfo().getPhoneNumber());
             questionary.setEmail(value.getData().getContactInfo().getEmail());

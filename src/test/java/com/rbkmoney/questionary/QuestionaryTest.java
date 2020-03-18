@@ -10,8 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 
-import static com.rbkmoney.questionary.TestData.EntityType;
-import static com.rbkmoney.questionary.TestData.buildQuestionaryParams;
+import static com.rbkmoney.questionary.TestData.*;
 
 public class QuestionaryTest extends AbstractIntegrationTest {
 
@@ -24,8 +23,8 @@ public class QuestionaryTest extends AbstractIntegrationTest {
         final long questionaryVersion = questionaryService.saveQuestionary(questionaryParams, 2L);
         final Reference reference = new Reference();
         reference.setVersion(questionaryVersion);
-        final Snapshot questionarySnapshot = questionaryService.getQuestionary("54376457", reference);
-        compareIndividualQuestionary(questionaryParams.getData(), questionarySnapshot.getQuestionary().getData());
+        final Snapshot questionarySnapshot = questionaryService.getQuestionary(QUESTIONARY_ID, PARTY_ID, reference);
+        compareIndividualQuestionary(questionaryParams, questionarySnapshot.getQuestionary());
     }
 
     @Test
@@ -34,42 +33,45 @@ public class QuestionaryTest extends AbstractIntegrationTest {
         final long questionaryVersion = questionaryService.saveQuestionary(questionaryParams, 1L);
         final Reference reference = new Reference();
         reference.setHead(new Head());
-        final Snapshot questionarySnapshot = questionaryService.getQuestionary("54376457", reference);
-        compareLegalQuestionary(questionaryParams.getData(), questionarySnapshot.getQuestionary().getData());
+        final Snapshot questionarySnapshot = questionaryService.getQuestionary(QUESTIONARY_ID, PARTY_ID, reference);
+        compareLegalQuestionary(questionaryParams, questionarySnapshot.getQuestionary());
     }
 
     @Test
     public void saveLegalQuestionaryMinimalDataTest() throws QuestionaryVersionConflict, QuestionaryNotFound {
         final QuestionaryParams questionaryParams = new QuestionaryParams();
-        questionaryParams.setId("6176312415");
+        questionaryParams.setId("5634565645");
+        questionaryParams.setPartyId("423433");
         questionaryParams.setOwnerId("64");
         Contractor legalEntity = Contractor.legal_entity(LegalEntity.russian_legal_entity(new RussianLegalEntity()));
         questionaryParams.setData(new QuestionaryData().setContractor(legalEntity));
         final long questionaryVersion = questionaryService.saveQuestionary(questionaryParams, 1L);
         final Reference reference = new Reference();
         reference.setHead(new Head());
-        final Snapshot questionarySnapshot = questionaryService.getQuestionary("6176312415", reference);
+        final Snapshot questionarySnapshot = questionaryService.getQuestionary("5634565645", "423433", reference);
         Assert.assertNotNull(questionarySnapshot);
     }
 
     @Test
     public void saveIndividualQuestionaryMinimalDataTest() throws QuestionaryVersionConflict, QuestionaryNotFound {
         final QuestionaryParams questionaryParams = new QuestionaryParams();
-        questionaryParams.setId("86739198237");
+        questionaryParams.setId("234325436");
+        questionaryParams.setPartyId("654764");
         questionaryParams.setOwnerId("64");
         Contractor individualEntity = Contractor.individual_entity(IndividualEntity.russian_individual_entity(new RussianIndividualEntity()));
         questionaryParams.setData(new QuestionaryData().setContractor(individualEntity));
         final long questionaryVersion = questionaryService.saveQuestionary(questionaryParams, 1L);
         final Reference reference = new Reference();
         reference.setHead(new Head());
-        final Snapshot questionarySnapshot = questionaryService.getQuestionary("86739198237", reference);
+        final Snapshot questionarySnapshot = questionaryService.getQuestionary("234325436", "654764", reference);
         Assert.assertNotNull(questionarySnapshot);
     }
 
     @Test
     public void questionaryVersionTest() throws QuestionaryVersionConflict, QuestionaryNotFound {
         final QuestionaryParams questionaryParams = new QuestionaryParams();
-        questionaryParams.setId("765432634");
+        questionaryParams.setId("879767432");
+        questionaryParams.setPartyId("6547564");
         questionaryParams.setOwnerId("64");
 
         final QuestionaryData questionaryData = new QuestionaryData();
@@ -81,12 +83,12 @@ public class QuestionaryTest extends AbstractIntegrationTest {
         questionaryParams.setData(questionaryData);
 
         final long firstQuestionaryVersion = questionaryService.saveQuestionary(questionaryParams, 0L);
-        final Snapshot firstQuestionary = questionaryService.getQuestionary("765432634", Reference.head(new Head()));
+        final Snapshot firstQuestionary = questionaryService.getQuestionary("879767432", "6547564", Reference.head(new Head()));
 
         firstQuestionary.getQuestionary().getData().getContactInfo().setEmail("test2@mail.com");
         questionaryParams.setData(firstQuestionary.getQuestionary().getData());
         final long secondQuestionaryVersion = questionaryService.saveQuestionary(questionaryParams, firstQuestionaryVersion);
-        final Snapshot secondQuestionary = questionaryService.getQuestionary("765432634", Reference.version(secondQuestionaryVersion));
+        final Snapshot secondQuestionary = questionaryService.getQuestionary("879767432", "6547564", Reference.version(secondQuestionaryVersion));
 
         Assert.assertEquals("test2@mail.com", secondQuestionary.getQuestionary().getData().getContactInfo().getEmail());
         Assert.assertEquals(2L, secondQuestionaryVersion);
@@ -95,7 +97,7 @@ public class QuestionaryTest extends AbstractIntegrationTest {
     @Test(expected = QuestionaryVersionConflictException.class)
     public void questionaryDuplicateVersionTest() throws QuestionaryVersionConflict {
         final QuestionaryParams questionaryParams = new QuestionaryParams();
-        questionaryParams.setId("87723261");
+        questionaryParams.setId("6547657654");
         questionaryParams.setOwnerId("64");
 
         final QuestionaryData questionaryData = new QuestionaryData();
@@ -110,17 +112,25 @@ public class QuestionaryTest extends AbstractIntegrationTest {
         questionaryService.saveQuestionary(questionaryParams, 1L);
     }
 
-    private void compareIndividualQuestionary(QuestionaryData data, QuestionaryData questionaryData) {
-        Assert.assertEquals("ShopInfo (description) not equals", data.getShopInfo().getDetails().getDescription(),
-                questionaryData.getShopInfo().getDetails().getDescription());
-        Assert.assertEquals("ShopInfo (name) not equals", data.getShopInfo().getDetails().getName(), questionaryData.getShopInfo().getDetails().getName());
+    private void compareIndividualQuestionary(QuestionaryParams expect, Questionary actual) {
+        Assert.assertEquals(expect.getId(), actual.getId());
+        Assert.assertEquals(expect.getOwnerId(), actual.getOwnerId());
+        Assert.assertEquals(expect.getPartyId(), actual.getPartyId());
 
-        compareBankAccount(data.getBankAccount(), questionaryData.getBankAccount());
+        QuestionaryData expectData = expect.getData();
+        QuestionaryData actualData = actual.getData();
 
-        compareContactInfo(data.getContactInfo(), questionaryData.getContactInfo());
+        Assert.assertEquals("ShopInfo (description) not equals", expectData.getShopInfo().getDetails().getDescription(),
+                actualData.getShopInfo().getDetails().getDescription());
+        Assert.assertEquals("ShopInfo (name) not equals", expectData.getShopInfo().getDetails().getName(),
+                actualData.getShopInfo().getDetails().getName());
 
-        RussianIndividualEntity expectedRussianIndividualEntity = data.getContractor().getIndividualEntity().getRussianIndividualEntity();
-        RussianIndividualEntity actualRussianIndividualEntity = questionaryData.getContractor().getIndividualEntity().getRussianIndividualEntity();
+        compareBankAccount(expectData.getBankAccount(), actualData.getBankAccount());
+
+        compareContactInfo(expectData.getContactInfo(), actualData.getContactInfo());
+
+        RussianIndividualEntity expectedRussianIndividualEntity = expectData.getContractor().getIndividualEntity().getRussianIndividualEntity();
+        RussianIndividualEntity actualRussianIndividualEntity = actualData.getContractor().getIndividualEntity().getRussianIndividualEntity();
         Assert.assertEquals("RussianIndividualEntity (name) not equals",
                 expectedRussianIndividualEntity.getName(), actualRussianIndividualEntity.getName());
         Assert.assertEquals("RussianIndividualEntity (inn) not equals",
@@ -170,17 +180,25 @@ public class QuestionaryTest extends AbstractIntegrationTest {
         compareAdditionalInfo(expectedRussianIndividualEntity.getAdditionalInfo(), actualRussianIndividualEntity.getAdditionalInfo());
     }
 
-    private void compareLegalQuestionary(QuestionaryData data, QuestionaryData questionaryData) {
-        Assert.assertEquals("ShopInfo (description) not equals", data.getShopInfo().getDetails().getDescription(),
-                questionaryData.getShopInfo().getDetails().getDescription());
-        Assert.assertEquals("ShopInfo (name) not equals", data.getShopInfo().getDetails().getName(), questionaryData.getShopInfo().getDetails().getName());
+    private void compareLegalQuestionary(QuestionaryParams expect, Questionary actual) {
+        Assert.assertEquals(expect.getId(), actual.getId());
+        Assert.assertEquals(expect.getOwnerId(), actual.getOwnerId());
+        Assert.assertEquals(expect.getPartyId(), actual.getPartyId());
 
-        compareBankAccount(data.getBankAccount(), questionaryData.getBankAccount());
+        QuestionaryData expectData = expect.getData();
+        QuestionaryData actualData = actual.getData();
 
-        compareContactInfo(data.getContactInfo(), questionaryData.getContactInfo());
+        Assert.assertEquals("ShopInfo (description) not equals", expectData.getShopInfo().getDetails().getDescription(),
+                actualData.getShopInfo().getDetails().getDescription());
+        Assert.assertEquals("ShopInfo (name) not equals", expectData.getShopInfo().getDetails().getName(),
+                actualData.getShopInfo().getDetails().getName());
 
-        RussianLegalEntity expectedLegalEntity = data.getContractor().getLegalEntity().getRussianLegalEntity();
-        RussianLegalEntity actualLegalEntity = questionaryData.getContractor().getLegalEntity().getRussianLegalEntity();
+        compareBankAccount(expectData.getBankAccount(), actualData.getBankAccount());
+
+        compareContactInfo(expectData.getContactInfo(), actualData.getContactInfo());
+
+        RussianLegalEntity expectedLegalEntity = expectData.getContractor().getLegalEntity().getRussianLegalEntity();
+        RussianLegalEntity actualLegalEntity = actualData.getContractor().getLegalEntity().getRussianLegalEntity();
 
         Assert.assertEquals("RussianLegalEntity (inn) not equals",
                 expectedLegalEntity.getInn(), actualLegalEntity.getInn());

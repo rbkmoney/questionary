@@ -66,9 +66,10 @@ public class QuestionaryDaoImpl extends AbstractGenericDao implements Questionar
     }
 
     @Override
-    public Questionary getLatestQuestionary(String questionaryId) {
+    public Questionary getLatestQuestionary(String questionaryId, String partyId) {
         Query query = getDslContext().selectFrom(QUESTIONARY)
                 .where(QUESTIONARY.QUESTIONARY_ID.eq(questionaryId))
+                .and(QUESTIONARY.PARTY_ID.eq(partyId))
                 .and(QUESTIONARY.VERSION.eq(
                         getDslContext().select(DSL.max(QUESTIONARY.VERSION))
                                 .from(QUESTIONARY)
@@ -78,9 +79,10 @@ public class QuestionaryDaoImpl extends AbstractGenericDao implements Questionar
     }
 
     @Override
-    public Questionary getQuestionaryByIdAndVersion(String questionaryId, Long version) {
+    public Questionary getQuestionaryByIdAndPartyId(String questionaryId, String partyId, Long version) {
         Query query = getDslContext().selectFrom(QUESTIONARY)
                 .where(QUESTIONARY.QUESTIONARY_ID.eq(questionaryId))
+                .and(QUESTIONARY.PARTY_ID.eq(partyId))
                 .and(QUESTIONARY.VERSION.eq(version));
         return fetchOne(query, questionaryRowMapper);
     }

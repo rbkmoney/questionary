@@ -4,11 +4,12 @@ import com.rbkmoney.dao.DaoException;
 import com.rbkmoney.questionary.converter.ConverterManager;
 import com.rbkmoney.questionary.dao.*;
 import com.rbkmoney.questionary.domain.enums.QuestionaryEntityType;
-import com.rbkmoney.questionary.domain.tables.pojos.Questionary;
 import com.rbkmoney.questionary.domain.tables.pojos.*;
 import com.rbkmoney.questionary.exception.QuestionaryNotFoundException;
 import com.rbkmoney.questionary.exception.QuestionaryVersionConflictException;
-import com.rbkmoney.questionary.manage.*;
+import com.rbkmoney.questionary.manage.QuestionaryParams;
+import com.rbkmoney.questionary.manage.Reference;
+import com.rbkmoney.questionary.manage.Snapshot;
 import com.rbkmoney.questionary.model.AdditionalInfoHolder;
 import com.rbkmoney.questionary.model.IndividualEntityQuestionaryHolder;
 import com.rbkmoney.questionary.model.LegalEntityQuestionaryHolder;
@@ -50,8 +51,8 @@ public class QuestionaryServiceImpl implements QuestionaryService {
 
         // Save questionary
         try {
-            log.info("Save questionary: id={}, ownerId={}, version={}",
-                    questionaryParams.getId(), questionaryParams.getOwnerId(), questionary.getVersion());
+            log.info("Save questionary: id={}, ownerId={}, partyId={}, version={}",
+                    questionaryParams.getId(), questionaryParams.getOwnerId(), questionaryParams.getPartyId(), questionary.getVersion());
             final Long questionaryId = questionaryDao.saveQuestionary(questionary);
             if (questionaryHolder.getLegalEntityQuestionaryHolder() != null) {
                 // Save legal entity questionary
@@ -76,14 +77,15 @@ public class QuestionaryServiceImpl implements QuestionaryService {
     }
 
     @Override
-    public Snapshot getQuestionary(String questionaryId, Reference reference) {
+    public Snapshot getQuestionary(String questionaryId, String partyId, Reference reference) {
         Questionary questionary;
         if (reference.isSetHead()) {
-            log.info("Get questionary head version. Questionary id={}", questionaryId);
-            questionary = questionaryDao.getLatestQuestionary(questionaryId);
+            log.info("Get questionary head version. Questionary id={}, partyId={}", questionaryId, partyId);
+            questionary = questionaryDao.getLatestQuestionary(questionaryId, partyId);
         } else {
-            log.info("Get questionary by version. Questionary id={}, version={}", questionaryId, reference.getVersion());
-            questionary = questionaryDao.getQuestionaryByIdAndVersion(questionaryId, reference.getVersion());
+            log.info("Get questionary by version. Questionary id={}, partyId={}, version={}",
+                    questionaryId, partyId, reference.getVersion());
+            questionary = questionaryDao.getQuestionaryByIdAndPartyId(questionaryId, partyId, reference.getVersion());
         }
 
         if (questionary == null) {
@@ -114,14 +116,14 @@ public class QuestionaryServiceImpl implements QuestionaryService {
             legalEntityQuestionaryHolderBuilder.founderList(founderDao.getByQuestionaryId(questionary.getId()));
             questionaryHolderBuilder.legalEntityQuestionaryHolder(legalEntityQuestionaryHolderBuilder.build());
         }
-        log.info("Found questionary by id '{}': {}", questionaryId, questionaryHolderBuilder);
+        log.info("Found questionary: {}", questionaryHolderBuilder);
         final QuestionaryParams questionaryParams = converterManager.convertToThrift(questionaryHolderBuilder.build(), QuestionaryParams.class);
-        log.info("Questionary '{}' thrift object: {}", questionaryId, questionaryParams);
-
+        log.info("Converted questionary: {}", questionaryParams);
 
         final com.rbkmoney.questionary.manage.Questionary thriftQuestionary = new com.rbkmoney.questionary.manage.Questionary();
         thriftQuestionary.setId(questionary.getQuestionaryId());
-        thriftQuestionary.setOwnerId(questionary.getOwnerId());
+        thriftQuestionary.setOwnerId(questionaryParams.getOwnerId());
+        thriftQuestionary.setPartyId(questionaryParams.getPartyId());
         thriftQuestionary.setData(questionaryParams.getData());
 
         return new Snapshot(questionary.getVersion(), thriftQuestionary);

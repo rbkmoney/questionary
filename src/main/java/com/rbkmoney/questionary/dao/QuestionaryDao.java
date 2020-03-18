@@ -12,9 +12,9 @@ public interface QuestionaryDao {
 
     Questionary getQuestionaryById(Long id);
 
-    Questionary getLatestQuestionary(String questionaryId);
+    Questionary getLatestQuestionary(String questionaryId, String partyId);
 
-    Questionary getQuestionaryByIdAndVersion(String questionaryId, Long version);
+    Questionary getQuestionaryByIdAndPartyId(String questionaryId, String partyId, Long version);
 
     Long saveIndividualEntity(IndividualEntityQuestionary questionary);
 
