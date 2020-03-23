@@ -31,7 +31,7 @@ public class QuestionaryHandler implements QuestionaryManagerSrv.Iface {
             log.warn("Questionary version conflict, version={}", version, ex);
             throw new QuestionaryVersionConflict();
         } catch (Exception ex) {
-            throw undefinedResultException(ex, "save");
+            throw undefinedResultException("save", ex);
         }
     }
 
@@ -43,12 +43,12 @@ public class QuestionaryHandler implements QuestionaryManagerSrv.Iface {
             log.warn("Questionary not found, claimId={}", questionaryId, ex);
             throw new QuestionaryNotFound();
         } catch (Exception ex) {
-            throw undefinedResultException(ex, "get");
+            throw undefinedResultException("get", ex);
         }
     }
 
-    private WUndefinedResultException undefinedResultException(Exception ex, String msg) {
-        log.warn("Error then '{}'", msg, ex);
+    private WUndefinedResultException undefinedResultException(String msg, Exception ex) {
+        log.error("Error during '{}' process", msg, ex);
         return new WUndefinedResultException(msg, ex);
     }
 }
