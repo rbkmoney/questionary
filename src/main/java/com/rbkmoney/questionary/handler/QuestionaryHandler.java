@@ -25,10 +25,13 @@ public class QuestionaryHandler implements QuestionaryManagerSrv.Iface {
         try {
             return questionaryService.saveQuestionary(questionaryParams, version);
         } catch (QuestionaryNotValidException ex) {
-            log.warn("Questionary not valid, ownerId={}", questionaryParams.getOwnerId(), ex);
+            log.warn("Questionary not valid, questionaryId={}, ownerId={}",
+                    questionaryParams.getId(),
+                    questionaryParams.getOwnerId(),
+                    ex);
             throw new QuestionaryNotValid();
         } catch (QuestionaryVersionConflictException ex) {
-            log.warn("Questionary version conflict, version={}", version, ex);
+            log.warn("Questionary version conflict, questionaryId={}, version={}", questionaryParams.getId(), version, ex);
             throw new QuestionaryVersionConflict();
         } catch (Exception ex) {
             throw undefinedResultException("save", ex);
@@ -40,7 +43,7 @@ public class QuestionaryHandler implements QuestionaryManagerSrv.Iface {
         try {
             return questionaryService.getQuestionary(questionaryId, partyId, reference);
         } catch (QuestionaryNotFoundException ex) {
-            log.warn("Questionary not found, claimId={}", questionaryId, ex);
+            log.warn("Questionary not found, questionaryId={}, partyId={}", questionaryId, partyId, ex);
             throw new QuestionaryNotFound();
         } catch (Exception ex) {
             throw undefinedResultException("get", ex);
