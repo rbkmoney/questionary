@@ -10,10 +10,7 @@ import com.rbkmoney.questionary.exception.QuestionaryVersionConflictException;
 import com.rbkmoney.questionary.manage.QuestionaryParams;
 import com.rbkmoney.questionary.manage.Reference;
 import com.rbkmoney.questionary.manage.Snapshot;
-import com.rbkmoney.questionary.model.AdditionalInfoHolder;
-import com.rbkmoney.questionary.model.IndividualEntityQuestionaryHolder;
-import com.rbkmoney.questionary.model.LegalEntityQuestionaryHolder;
-import com.rbkmoney.questionary.model.QuestionaryHolder;
+import com.rbkmoney.questionary.model.*;
 import com.rbkmoney.questionary.service.QuestionaryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,33 +35,41 @@ public class QuestionaryServiceImpl implements QuestionaryService {
     private final HeadDao headDao;
     private final FounderDao founderDao;
     private final BeneficialOwnerDao beneficialOwnerDao;
+    private final InternationalBankInfoDao internationalBankInfoDao;
+    private final InternationalLegalEntityQuestionaryDao internationalLegalEntityQuestionaryDao;
 
     private final ConverterManager converterManager;
 
     @Override
     public long saveQuestionary(QuestionaryParams questionaryParams, Long version) {
-        log.info("Save questionary '{}' params: {}", questionaryParams.getId(), questionaryParams);
+        String questionaryParamsId = questionaryParams.getId();
+        log.info("Save questionary '{}' params: {}", questionaryParamsId, questionaryParams);
         final QuestionaryHolder questionaryHolder = converterManager.convertFromThrift(questionaryParams, QuestionaryHolder.class);
-        log.info("Save questionary '{}' thrift object: {}", questionaryParams.getId(), questionaryHolder);
+        log.info("Save questionary '{}' thrift object: {}", questionaryParamsId, questionaryHolder);
         final Questionary questionary = questionaryHolder.getQuestionary();
         questionary.setVersion(++version);
 
         // Save questionary
         try {
             log.info("Save questionary: id={}, ownerId={}, partyId={}, version={}",
-                    questionaryParams.getId(), questionaryParams.getOwnerId(), questionaryParams.getPartyId(), questionary.getVersion());
+                    questionaryParamsId, questionaryParams.getOwnerId(), questionaryParams.getPartyId(), questionary.getVersion());
             final Long questionaryId = questionaryDao.saveQuestionary(questionary);
             if (questionaryHolder.getLegalEntityQuestionaryHolder() != null) {
                 // Save legal entity questionary
                 final LegalEntityQuestionaryHolder legalEntityQuestionaryHolder = questionaryHolder.getLegalEntityQuestionaryHolder();
-                log.info("Save legal questionary: id={}", questionaryParams.getId());
+                log.info("Save legal questionary: id={}", questionaryParamsId);
                 saveLegalEntityQuestionary(questionaryId, legalEntityQuestionaryHolder);
             } else if (questionaryHolder.getIndividualEntityQuestionaryHolder() != null) {
                 // Save individual entity questionary
                 final IndividualEntityQuestionaryHolder individualEntityQuestionaryHolder = questionaryHolder
                         .getIndividualEntityQuestionaryHolder();
-                log.info("Save individual entity questionary: id={}", questionaryParams.getId());
+                log.info("Save individual entity questionary: id={}", questionaryParamsId);
                 saveIndividualEntityQuestionary(questionaryId, individualEntityQuestionaryHolder);
+            } else if (questionaryHolder.getInternationalLegalEntityQuestionaryHolder() != null) {
+                var internationalLegalEntityQuestionaryHolder =
+                        questionaryHolder.getInternationalLegalEntityQuestionaryHolder();
+                log.info("Save international legal entity questionary: id={}", questionaryParamsId);
+                saveInternationLegalEntityQuestionary(questionaryId, internationalLegalEntityQuestionaryHolder);
             }
         } catch (DaoException ex) {
             if (ex.getCause() instanceof DuplicateKeyException) {
@@ -115,6 +120,18 @@ public class QuestionaryServiceImpl implements QuestionaryService {
             legalEntityQuestionaryHolderBuilder.beneficialOwnerList(beneficialOwnerDao.getByQuestionaryId(questionary.getId()));
             legalEntityQuestionaryHolderBuilder.founderList(founderDao.getByQuestionaryId(questionary.getId()));
             questionaryHolderBuilder.legalEntityQuestionaryHolder(legalEntityQuestionaryHolderBuilder.build());
+        } else if (questionary.getType() == QuestionaryEntityType.international) {
+            log.info("Get international legal questionary '{}'", questionaryId);
+            Long questionaryRecordId = questionary.getId();
+            var internationalLegalEntityQuestionaryHolderBuilder = InternationalLegalEntityQuestionaryHolder.builder()
+                    .questionary(questionary)
+                    .internationalBankInfo(internationalBankInfoDao.getByExtId(questionaryRecordId))
+                    .internationalLegalEntityQuestionary(
+                            internationalLegalEntityQuestionaryDao.getByExtId(questionaryRecordId))
+                    .build();
+            questionaryHolderBuilder.internationalLegalEntityQuestionaryHolder(
+                    internationalLegalEntityQuestionaryHolderBuilder
+            );
         }
         log.info("Found questionary: {}", questionaryHolderBuilder);
         final QuestionaryParams questionaryParams = converterManager.convertToThrift(questionaryHolderBuilder.build(), QuestionaryParams.class);
@@ -187,6 +204,21 @@ public class QuestionaryServiceImpl implements QuestionaryService {
                     .peek(beneficialOwner -> beneficialOwner.setQuestionaryId(questionaryId))
                     .collect(Collectors.toList());
             beneficialOwnerDao.saveAll(beneficialOwnerList);
+        }
+    }
+
+    private void saveInternationLegalEntityQuestionary(Long questionaryId,
+                                                       InternationalLegalEntityQuestionaryHolder holder) {
+        var internationalLegalEntityQuestionary = holder.getInternationalLegalEntityQuestionary();
+        if (internationalLegalEntityQuestionary != null) {
+            internationalLegalEntityQuestionary.setExtId(questionaryId);
+            internationalLegalEntityQuestionaryDao.save(internationalLegalEntityQuestionary);
+        }
+
+        InternationalBankInfo internationalBankInfo = holder.getInternationalBankInfo();
+        if (internationalBankInfo != null) {
+            internationalBankInfo.setExtId(questionaryId);
+            internationalBankInfoDao.save(internationalBankInfo);
         }
     }
 

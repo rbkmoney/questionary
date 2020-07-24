@@ -1,5 +1,6 @@
 package com.rbkmoney.questionary;
 
+import com.rbkmoney.file.storage.base.Residence;
 import com.rbkmoney.questionary.exception.QuestionaryVersionConflictException;
 import com.rbkmoney.questionary.manage.Head;
 import com.rbkmoney.questionary.manage.*;
@@ -66,6 +67,87 @@ public class QuestionaryTest extends AbstractIntegrationTest {
         final Snapshot questionarySnapshot = questionaryService.getQuestionary("234325436", "654764", reference);
         Assert.assertNotNull(questionarySnapshot);
     }
+
+    @Test
+    public void saveInternationalQuestionaryMinimalDataTest() {
+        final QuestionaryParams questionaryParams = new QuestionaryParams();
+        questionaryParams.setId("2343254361");
+        questionaryParams.setPartyId("654764");
+        questionaryParams.setOwnerId("64");
+        Contractor legalEntity = Contractor.legal_entity(
+                LegalEntity.international_legal_entity(new InternationalLegalEntity())
+        );
+        questionaryParams.setData(new QuestionaryData().setContractor(legalEntity));
+        final long questionaryVersion = questionaryService.saveQuestionary(questionaryParams, 1L);
+        final Reference reference = new Reference();
+        reference.setHead(new Head());
+        final Snapshot questionarySnapshot =
+                questionaryService.getQuestionary("2343254361", "654764", reference);
+        Assert.assertNotNull(questionarySnapshot);
+        Assert.assertTrue(questionarySnapshot.getQuestionary().getData().getContractor()
+                .getLegalEntity().isSetInternationalLegalEntity());
+    }
+
+    @Test
+    public void saveInternationalQuestionaryMaximalDataTest() {
+        String legalName = "Legal-1", tradingName = "Trade-2", registeredAddress = "RegAddr",
+                actualAddress = "ActualAddr", registeredNumber = "101";
+        String accountHolder = "acc_holder-1", iban = "IB-001", number = "1000013", bic = "001100", name = "ZeroBank";
+        Residence residence = Residence.RUS;
+        final QuestionaryParams questionaryParams = new QuestionaryParams();
+        questionaryParams.setId("2343254362");
+        questionaryParams.setPartyId("654766");
+        questionaryParams.setOwnerId("64");
+        InternationalLegalEntity internationalLegalEntity = new InternationalLegalEntity();
+        internationalLegalEntity.setLegalName(legalName);
+        internationalLegalEntity.setTradingName(tradingName);
+        internationalLegalEntity.setRegisteredAddress(registeredAddress);
+        internationalLegalEntity.setActualAddress(actualAddress);
+        internationalLegalEntity.setRegisteredNumber(registeredNumber);
+        Contractor legalEntity = Contractor.legal_entity(
+                LegalEntity.international_legal_entity(internationalLegalEntity)
+        );
+        BankAccount bankAccount = new BankAccount();
+        bankAccount.setInternationalBankAccount(new InternationalBankAccount()
+                .setAccountHolder(accountHolder)
+                .setIban(iban)
+                .setNumber(number).setBank(new InternationalBankDetails()
+                        .setBic(bic)
+                        .setCountry(residence)
+                        .setName(name)
+                )
+        );
+        questionaryParams.setData(new QuestionaryData()
+                .setContractor(legalEntity)
+                .setBankAccount(bankAccount));
+        final long questionaryVersion = questionaryService.saveQuestionary(questionaryParams, 1L);
+        final Reference reference = new Reference();
+        reference.setHead(new Head());
+        final Snapshot questionarySnapshot =
+                questionaryService.getQuestionary("2343254362", "654766", reference);
+        Assert.assertNotNull(questionarySnapshot);
+        Assert.assertTrue(questionarySnapshot.getQuestionary().getData().getContractor()
+                .getLegalEntity().isSetInternationalLegalEntity());
+        InternationalLegalEntity internationalLegalEntityResulr = questionarySnapshot.getQuestionary()
+                .getData().getContractor().getLegalEntity().getInternationalLegalEntity();
+        Assert.assertEquals(legalName, internationalLegalEntityResulr.getLegalName());
+        Assert.assertEquals(tradingName, internationalLegalEntityResulr.getTradingName());
+        Assert.assertEquals(registeredAddress, internationalLegalEntityResulr.getRegisteredAddress());
+        Assert.assertEquals(actualAddress, internationalLegalEntityResulr.getActualAddress());
+        Assert.assertEquals(registeredNumber, internationalLegalEntityResulr.getRegisteredNumber());
+
+        Assert.assertTrue(questionarySnapshot.getQuestionary().getData().getBankAccount().isSetInternationalBankAccount());
+        InternationalBankAccount internationalBankAccount =
+                questionarySnapshot.getQuestionary().getData().getBankAccount().getInternationalBankAccount();
+        Assert.assertEquals(accountHolder, internationalBankAccount.getAccountHolder());
+        Assert.assertEquals(iban, internationalBankAccount.getIban());
+        Assert.assertEquals(number, internationalBankAccount.getNumber());
+        Assert.assertTrue(internationalBankAccount.isSetBank());
+        Assert.assertEquals(bic, internationalBankAccount.getBank().getBic());
+        Assert.assertEquals(name, internationalBankAccount.getBank().getName());
+        Assert.assertEquals(residence, internationalBankAccount.getBank().getCountry());
+    }
+
 
     @Test
     public void questionaryVersionTest() throws QuestionaryVersionConflict, QuestionaryNotFound {
