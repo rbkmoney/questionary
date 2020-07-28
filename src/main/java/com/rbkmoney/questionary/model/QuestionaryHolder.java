@@ -14,4 +14,6 @@ public class QuestionaryHolder {
 
     private final LegalEntityQuestionaryHolder legalEntityQuestionaryHolder;
 
+    private final InternationalLegalEntityQuestionaryHolder internationalLegalEntityQuestionaryHolder;
+
 }
