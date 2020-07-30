@@ -162,7 +162,10 @@ public class TestData {
         additionalInfo.setBusinessReputation(BusinessReputation.provide_reviews);
         additionalInfo.setMonthOperationCount(MonthOperationCount.lt_ten);
         BankAccount bankAccount = new BankAccount();
-        bankAccount = new MockTBaseProcessor(MockMode.ALL).process(bankAccount, new TBaseHandler<>(BankAccount.class));
+        RussianBankAccount russianBankAccount = new RussianBankAccount();
+        russianBankAccount = new MockTBaseProcessor(MockMode.ALL)
+                .process(russianBankAccount, new TBaseHandler<>(RussianBankAccount.class));
+        bankAccount.setRussianBankAccount(russianBankAccount);
         additionalInfo.setBankAccount(bankAccount);
         russianIndividualEntity.setAdditionalInfo(additionalInfo);
 
@@ -275,7 +278,10 @@ public class TestData {
         additionalInfo.setBusinessReputation(BusinessReputation.provide_reviews);
         additionalInfo.setMonthOperationCount(MonthOperationCount.lt_ten);
         BankAccount bankAccount = new BankAccount();
-        bankAccount = new MockTBaseProcessor(MockMode.ALL).process(bankAccount, new TBaseHandler<>(BankAccount.class));
+        RussianBankAccount russianBankAccount = new RussianBankAccount();
+        russianBankAccount = new MockTBaseProcessor(MockMode.ALL)
+                .process(russianBankAccount, new TBaseHandler<>(RussianBankAccount.class));
+        bankAccount.setRussianBankAccount(russianBankAccount);
         additionalInfo.setBankAccount(bankAccount);
 
         russianLegalEntity.setAdditionalInfo(additionalInfo);
