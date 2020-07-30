@@ -61,7 +61,8 @@ public class InternationalBankAccountConverter
             bankInfo.setBankAddress(internationalBankDetails.getAddress());
             bankInfo.setBankAbaRtn(internationalBankDetails.getAbaRtn());
             bankInfo.setBankBic(internationalBankDetails.getBic());
-            bankInfo.setBankCountry(internationalBankDetails.getCountry().getValue());
+            bankInfo.setBankCountry(internationalBankDetails.getCountry() != null ?
+                    internationalBankDetails.getCountry().getValue() : null);
         }
         if (internationalBankAccount.isSetCorrespondentAccount()) {
             InternationalBankAccount correspondentAccount = internationalBankAccount.getCorrespondentAccount();
@@ -74,7 +75,8 @@ public class InternationalBankAccountConverter
                 bankInfo.setCorrespondentAccountBankAddress(correspondentAccountBank.getAddress());
                 bankInfo.setCorrespondentAccountBankAbaRtn(correspondentAccountBank.getAbaRtn());
                 bankInfo.setCorrespondentAccountBankBic(correspondentAccountBank.getBic());
-                bankInfo.setCorrespondentAccountBankCountry(correspondentAccountBank.getCountry().getValue());
+                bankInfo.setCorrespondentAccountBankCountry(correspondentAccountBank.getCountry() != null ?
+                        correspondentAccountBank.getCountry().getValue() : null);
             }
         }
         return bankInfo;
